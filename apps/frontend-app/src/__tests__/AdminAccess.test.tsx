@@ -37,7 +37,9 @@ describe('Admin access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: /admin/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /^Admin$/i })
+    ).toBeInTheDocument();
   });
 
   it('hides Admin link for users without admin group', () => {
