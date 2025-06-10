@@ -1,5 +1,5 @@
 {
-  "name": "@miliare/frontend",
+  "name": "@miliare-referral-network/frontend-app",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -18,13 +18,10 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.8.1",
     "@hookform/resolvers": "^3.3.4",
-    "@types/react-router-dom": "^5.3.3",
     "aws-amplify": "^6.8.1",
     "chart.js": "^4.4.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "docusign-esign": "^6.5.1",
-    "framer-motion": "^11.18.2",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
@@ -39,6 +36,7 @@
     "@aws-amplify/backend-cli": "^1.5.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.3.1",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.33.1",

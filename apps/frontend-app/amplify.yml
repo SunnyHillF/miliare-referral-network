@@ -1,6 +1,6 @@
 version: 1
 applications:
-  - appRoot: packages/frontend
+  - appRoot: apps/frontend-app
     backend:
       phases:
         preBuild:
@@ -12,7 +12,7 @@ applications:
             - cd ../.. && pnpm install --frozen-lockfile --prefer-offline
         build:
           commands:
-            - cd packages/frontend
+            - cd apps/frontend-app
             - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
     frontend:
       phases:
@@ -25,9 +25,9 @@ applications:
             - cd ../.. && pnpm install --frozen-lockfile --prefer-offline
         build:
           commands:
-            - cd packages/frontend
+            - cd apps/frontend-app
             - pnpm run build
       artifacts:
-        baseDirectory: dist
+        baseDirectory: apps/frontend-app/dist
         files:
           - '**/*'

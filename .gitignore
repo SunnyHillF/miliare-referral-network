@@ -7,14 +7,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
+.pnp
+.pnp.js
+
+# Build outputs
 dist
 dist-ssr
-*.local
+build
+out
+.next
+.nuxt
+.vitepress/dist
+.temp
+.cache
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+.nyc_output
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea
 .DS_Store
 *.suo
@@ -22,8 +55,41 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*~
 
-# amplify
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# CDK specific
+*.js
+*.d.ts
+!jest.config.js
+!vitest.config.js
+!vite.config.js
+!tailwind.config.js
+!postcss.config.js
+.cdk.staging
+cdk.out
+cdk.context.json
+
+# Amplify
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+aws-exports.js
+
+# Testing
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+.mocha
+junit.xml
+test-results/
+
+# Temporary folders
+tmp/
+temp/
