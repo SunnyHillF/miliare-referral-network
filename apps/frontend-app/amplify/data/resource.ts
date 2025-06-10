@@ -16,18 +16,22 @@ const schema = a.schema({
       phone: a.string(),
       address: a.string(),
       company: a.string(),
+      teamId: a.string(), // Team identifier (optional - not all members need to belong to a team)
+      teamLead: a.boolean(), // Indicates if user is a team lead (default: false)
       uplineEVC: a.string(), // Required if company is WFG
       uplineSMD: a.string(), // Required if company is WFG
-      teamLeadId: a.id(), // References the team lead's UserProfile ID
       bankInfoDocument: a.string(), // DocuSign envelope ID
       taxDocument: a.string(), // DocuSign envelope ID
       referrals: a.hasMany("Referral", "userProfileId"),
       payments: a.hasMany("Payment", "userProfileId"),
-      teamLead: a.belongsTo("UserProfile", "teamLeadId"),
-      teamMembers: a.hasMany("UserProfile", "teamLeadId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey()
+      allow.owner(),
+      allow.groups(["admin"]),
+      allow.groups(["teamLead"]).to(["read"])
+    ])
+    .secondaryIndexes((index) => [
+      index("teamId").sortKeys(["id"]).queryField("listUsersByTeam"),
     ]),
 
   // Strategic Partners model
@@ -50,7 +54,9 @@ const schema = a.schema({
       referrals: a.hasMany("Referral", "partnerId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey()
+      allow.authenticated().to(["read"]),
+      allow.groups(["admin"]),
+      allow.groups(["teamLead"]).to(["read"])
     ]),
 
   // Referrals model - tracks leads sent to partners
@@ -81,7 +87,9 @@ const schema = a.schema({
       payments: a.hasMany("Payment", "referralId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey()
+      allow.owner().to(["create", "read", "update"]),
+      allow.groups(["admin"]),
+      allow.groups(["teamLead"]).to(["read"])
     ]),
 
   // Payments model - monthly payouts
@@ -104,7 +112,9 @@ const schema = a.schema({
       referral: a.belongsTo("Referral", "referralId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey()
+      allow.owner().to(["create", "read", "update", "delete"]),
+      allow.groups(["admin"]),
+      allow.groups(["teamLead"]).to(["read"])
     ]),
 
   // Team Performance Reports - aggregated data for team leads
@@ -121,7 +131,8 @@ const schema = a.schema({
       reportData: a.json(), // Detailed breakdown data
     })
     .authorization((allow) => [
-      allow.publicApiKey()
+      allow.owner().to(["read"]),
+      allow.groups(["admin"])
     ]),
 });
 
@@ -130,7 +141,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
+    defaultAuthorizationMode: "userPool",
   },
 });
 
