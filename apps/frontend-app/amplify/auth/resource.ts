@@ -41,11 +41,11 @@ export const auth = defineAuth({
       dataType: 'String',
       mutable: true,
     },
-    'custom:uplineSMD': {
+    'custom:team': {
       dataType: 'String',
       mutable: true,
     },
-    'custom:uplineEVC': {
+    'custom:upline': {
       dataType: 'String',
       mutable: true,
     },
