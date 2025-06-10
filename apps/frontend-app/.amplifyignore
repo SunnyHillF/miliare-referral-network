@@ -1,0 +1,25 @@
+# Amplify ignore patterns
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+amplify_outputs.json
+amplifyconfiguration.json
+aws-exports.js
+
+# Development files
+*.log
+*.tmp
+.DS_Store
+.vscode/
+.idea/
+
+# Testing
+coverage/
+*.spec.ts
+*.test.ts
+__tests__/ 

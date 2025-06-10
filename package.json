@@ -1,37 +1,44 @@
 {
-  "name": "amplify-vite-react-template",
+  "name": "miliare-referral-network",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "Miliare referral network monorepo",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "frontend:dev": "cd apps/frontend-app && pnpm run dev",
+    "frontend:build": "cd apps/frontend-app && pnpm run build",
+    "frontend:start": "cd apps/frontend-app && pnpm run start",
+    "frontend:lint": "cd apps/frontend-app && pnpm run lint",
+    "frontend:test": "cd apps/frontend-app && pnpm run test",
+    
+    "amplify:pull": "cd apps/frontend-app && amplify pull",
+    "amplify:push": "cd apps/frontend-app && amplify push",
+    "amplify:status": "cd apps/frontend-app && amplify status",
+    
+    "install:all": "pnpm install",
+    
+    "clean": "rm -rf node_modules apps/*/node_modules apps/frontend-app/dist",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,js,jsx,json,md}\""
   },
-  "dependencies": {
-    "@aws-amplify/ui-react": "^6.5.5",
-    "aws-amplify": "^6.6.6",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.12.0"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^1.5.0",
-    "@aws-amplify/backend-cli": "^1.2.9",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "aws-cdk": "^2.138.0",
-    "aws-cdk-lib": "^2.138.0",
-    "constructs": "^10.3.0",
-    "esbuild": "^0.20.2",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "tsx": "^4.7.2",
-    "typescript": "^5.4.5",
-    "vite": "^5.4.10"
-  }
+    "prettier": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SunnyHillF/miliare-referral-network.git"
+  },
+  "keywords": [
+    "monorepo",
+    "amplify",
+    "aws-cdk",
+    "typescript",
+    "golang"
+  ],
+
+  "author": "richardstanley",
+  "license": "MIT"
 }
