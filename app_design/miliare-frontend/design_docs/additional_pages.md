@@ -25,12 +25,8 @@ The current frontend includes login, registration, dashboard (business, learn, r
   - Table of payments with date, company, and amount
   - Filters by date range
 
-## DocuSign Completion Page
-- **Route:** `/register/complete`
-- **Purpose:** Confirmation page after registration where users are directed to complete DocuSign forms (1099‑NEC and direct deposit).
-- **Contents:**
-  - Instructions and links to DocuSign envelopes
-  - Option to return to dashboard when done
+## DocuSign Completion Page (Removed)
+- This page is no longer needed because DocuSign integration has been dropped.
 
 These pages enhance user experience and ensure that all requirements from the design specification are addressed.
 
