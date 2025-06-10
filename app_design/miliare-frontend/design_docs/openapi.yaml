@@ -6,6 +6,7 @@ info:
     Legacy REST API specification previously used for SSR data fetching.
     The project now relies on Amplify's GraphQL API and Storage for all data operations.
     Since the application is built with Amplify Gen 2, this file is retained for historical reference only.
+    DocuSign-related endpoints were removed from the current roadmap and remain here only for context.
 servers:
   - url: https://api.miliare.example.com
 paths:

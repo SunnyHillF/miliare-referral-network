@@ -16,7 +16,7 @@ This document lists the pages that exist in the application as of this commit. I
 
 ## Registration Complete
 - **Route:** `/register/complete`
-- **Purpose:** Placeholder for DocuSign links (1099‑NEC and Direct Deposit) to finalize registration. Links back to the dashboard.
+- **Purpose:** This page was originally intended for DocuSign links but the integration has been removed. It can simply redirect to the dashboard.
 
 ## Dashboard (Layout)
 - **Route:** `/dashboard`
