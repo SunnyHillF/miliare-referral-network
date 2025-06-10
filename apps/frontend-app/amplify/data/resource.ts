@@ -27,9 +27,7 @@ const schema = a.schema({
       teamMembers: a.hasMany("UserProfile", "teamLeadId"),
     })
     .authorization((allow) => [
-      allow.owner(),
-      allow.groups(["admins"]),
-      allow.groups(["team_lead"]).to(["read"])
+      allow.publicApiKey()
     ]),
 
   // Strategic Partners model
@@ -52,9 +50,7 @@ const schema = a.schema({
       referrals: a.hasMany("Referral", "partnerId"),
     })
     .authorization((allow) => [
-      allow.authenticated().to(["read"]),
-      allow.groups(["admins"]),
-      allow.groups(["team_lead"]).to(["read"])
+      allow.publicApiKey()
     ]),
 
   // Referrals model - tracks leads sent to partners
@@ -85,9 +81,7 @@ const schema = a.schema({
       payments: a.hasMany("Payment", "referralId"),
     })
     .authorization((allow) => [
-      allow.owner().to(["create", "read", "update", "delete"]),
-      allow.groups(["admins"]),
-      allow.groups(["team_lead"]).to(["read"])
+      allow.publicApiKey()
     ]),
 
   // Payments model - monthly payouts
@@ -110,9 +104,7 @@ const schema = a.schema({
       referral: a.belongsTo("Referral", "referralId"),
     })
     .authorization((allow) => [
-      allow.owner().to(["create", "read", "update", "delete"]),
-      allow.groups(["admins"]),
-      allow.groups(["team_lead"]).to(["read"])
+      allow.publicApiKey()
     ]),
 
   // Team Performance Reports - aggregated data for team leads
@@ -129,8 +121,7 @@ const schema = a.schema({
       reportData: a.json(), // Detailed breakdown data
     })
     .authorization((allow) => [
-      allow.owner().to(["read"]),
-      allow.groups(["admins"])
+      allow.publicApiKey()
     ]),
 });
 
@@ -139,7 +130,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
+    defaultAuthorizationMode: "apiKey",
   },
 });
 
