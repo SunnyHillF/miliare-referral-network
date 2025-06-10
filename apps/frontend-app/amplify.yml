@@ -28,6 +28,6 @@ applications:
             - cd apps/frontend-app
             - pnpm run build
       artifacts:
-        baseDirectory: apps/frontend-app/dist
+        baseDirectory: dist
         files:
           - '**/*'
