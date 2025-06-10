@@ -2,12 +2,9 @@
 
 This document compiles the features described in the design specs and OpenAPI documentation that are not fully implemented in the current codebase. It also notes whether they should be tackled now with the Amplify Gen&nbsp;2 setup or deferred until the CDK backend migration.
 
-## 1. DocuSign Integration & Bonus Pools
+## 1. DocuSign Integration & Bonus Pools (Removed)
 
-- **OpenAPI definitions** include routes for creating envelopes, checking status and receiving callbacks from DocuSign along with several `/bonus-pools` endpoints.【F:app_design/openapi.yml†L246-L349】
-- **Current state**: the `ops` Lambda that should power these routes simply returns a "not implemented" message.【F:packages/backend/lambda/ops/main.go†L1-L27】
-
-**Recommendation**: Implement these endpoints after migrating to the CDK backend where the complex DocuSign automation and bonus-pool logic can be structured cleanly.
+This functionality is no longer part of the roadmap. The OpenAPI definitions and placeholder Lambdas remain for reference but will not be implemented. Any residual code can be safely deleted in future cleanups.
 
 ## 2. Partner Seeding & Dynamic Dashboards
 
@@ -16,12 +13,9 @@ This document compiles the features described in the design specs and OpenAPI do
 
 **Recommendation**: Temporary seeding in Amplify Gen&nbsp;2 is possible for demos, but the full dynamic solution should be implemented once the CDK backend is in place.
 
-## 3. Automated Document Workflow After Registration
+## 3. Automated Document Workflow After Registration (Removed)
 
-- The registration flow states that users will be redirected to DocuSign forms post‑signup, yet no code triggers these envelopes.
-- This feature depends on the unimplemented DocuSign APIs above.
-
-**Recommendation**: Defer implementation until the CDK backend phase alongside the DocuSign endpoints.
+The prototype originally called for redirecting users to DocuSign forms after sign up. Since DocuSign integration has been dropped, this workflow is no longer necessary and can be ignored.
 
 ## 4. Backend Infrastructure & Deployments
 
@@ -34,9 +28,9 @@ This document compiles the features described in the design specs and OpenAPI do
 
 | Feature | Amplify Gen&nbsp;2 Feasible? | Recommended Phase |
 | --- | --- | --- |
-| DocuSign integration & bonus pool APIs | ❌ Limited (placeholder only) | Implement with CDK backend |
+| DocuSign integration & bonus pool APIs | ❌ Removed from roadmap | N/A |
 | Partner seeding & dynamic dashboards | ⚠️ Possible now, but better with CDK | Begin after CDK migration (temporary demo seeding OK) |
-| Automated DocuSign workflow | ❌ Depends on unbuilt APIs | Implement with CDK backend |
+| Automated DocuSign workflow | ❌ Removed | N/A |
 | Infrastructure & deployments | ⚠️ Basic Amplify setup exists | Finalize with CDK migration |
 
 This list can guide planning for the upcoming phases and prioritize work during the backend transition.
