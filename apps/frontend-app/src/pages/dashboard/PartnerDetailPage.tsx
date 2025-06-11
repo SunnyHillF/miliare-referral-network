@@ -9,11 +9,13 @@ import {
   CircleDollarSign, 
   BadgePercent, 
   CreditCard,
-  Link2 
+  Link2
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { partnersData } from '../../data/partnersData';
 import { toast } from '../../components/ui/Toaster';
+import StatsOverview, { StatItem } from '../../components/StatsOverview';
+import { partnerAggregateStats } from '../../data/partnerAggregateStats';
 
 const PartnerDetailPage = () => {
   const { partnerId } = useParams<{ partnerId: string }>();
@@ -22,8 +24,45 @@ const PartnerDetailPage = () => {
   const partner = useMemo(() => {
     return partnersData.find(p => p.id === partnerId);
   }, [partnerId]);
-  
-  // If partner not found, redirect to Learn page
+
+  const aggregate = partnerAggregateStats[partnerId || ''];
+
+  const stats: StatItem[] = useMemo(() => {
+    if (!aggregate) return [];
+    return [
+      {
+        label: 'Total Earnings',
+        value: `$${aggregate.totalEarnings.toLocaleString()}`,
+        icon: 'DollarSign',
+        bgColor: 'bg-blue-100',
+        iconColor: 'text-primary',
+      },
+      {
+        label: 'Pending Commissions',
+        value: `$${aggregate.pendingCommissions.toLocaleString()}`,
+        icon: 'Clock',
+        bgColor: 'bg-green-100',
+        iconColor: 'text-success',
+      },
+      {
+        label: 'Total Referrals',
+        value: aggregate.referralsCount.toString(),
+        icon: 'Users',
+        bgColor: 'bg-purple-100',
+        iconColor: 'text-purple-600',
+      },
+      {
+        label: 'Success Rate',
+        value: `${Math.round(
+          (aggregate.successfulReferrals / aggregate.referralsCount) * 100
+        )}%`,
+        icon: 'TrendingUp',
+        bgColor: 'bg-orange-100',
+        iconColor: 'text-orange-600',
+      },
+    ];
+  }, [aggregate]);
+
   if (!partner) {
     navigate('/dashboard/learn');
     return null;
@@ -102,7 +141,9 @@ const PartnerDetailPage = () => {
           </p>
         </div>
       </div>
-      
+
+      {stats.length > 0 && <StatsOverview stats={stats} />}
+
       {/* Partner overview */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="md:flex">
