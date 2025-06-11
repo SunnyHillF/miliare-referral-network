@@ -196,3 +196,14 @@ aws-amplify
 ---
 
 **Status**: 🎉 **Miliare is ready for user onboarding and business validation!**
+
+## Partner Creation & Admin Invite Workflow
+
+Site administrators can onboard new partners directly from the dashboard. The workflow is:
+
+1. Navigate to **Site Admin → Create Partner** (visible only to `admin` users).
+2. Submit partner details along with the email for the partner's administrator.
+3. The frontend uses `generateClient<Schema>()` to create the Partner record.
+4. After creation, `invitePartnerAdmin` calls the Cognito Admin APIs to create the user, assign them to the `partnerAdmin` group and set the `custom:partnerId` attribute.
+5. The user receives an invite email from Cognito.
+6. Upon success the app redirects to a confirmation page showing the new partner ID and that the invite is pending.

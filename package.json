@@ -9,17 +9,13 @@
     "frontend:start": "cd apps/frontend-app && pnpm run start",
     "frontend:lint": "cd apps/frontend-app && pnpm run lint",
     "frontend:test": "cd apps/frontend-app && pnpm run test",
-    
     "amplify:pull": "cd apps/frontend-app && amplify pull",
     "amplify:push": "cd apps/frontend-app && amplify push",
     "amplify:status": "cd apps/frontend-app && amplify status",
-    
     "install:all": "pnpm install",
-    
     "clean": "rm -rf node_modules apps/*/node_modules apps/frontend-app/dist",
     "format": "prettier --write \"apps/**/*.{ts,tsx,js,jsx,json,md}\""
   },
-
   "engines": {
     "node": ">=22.0.0",
     "pnpm": ">=10.12.0"
@@ -38,7 +34,7 @@
     "typescript",
     "golang"
   ],
-
   "author": "richardstanley",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {}
 }

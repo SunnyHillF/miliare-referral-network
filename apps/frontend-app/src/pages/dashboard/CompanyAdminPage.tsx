@@ -11,7 +11,7 @@ const CompanyAdminPage = () => {
       </div>
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <p className="text-gray-700">
-          This page is accessible to Partner Admins and Site Admins. 
+          This page is accessible to Partner Admins and Site Admins.
           Manage company settings, partner configurations, and referral workflows here.
         </p>
       </div>
@@ -19,4 +19,5 @@ const CompanyAdminPage = () => {
   );
 };
 
-export default CompanyAdminPage; 
+export default CompanyAdminPage;
+
