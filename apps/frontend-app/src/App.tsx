@@ -7,6 +7,8 @@ import BusinessPage from './pages/dashboard/BusinessPage';
 import LearnPage from './pages/dashboard/LearnPage';
 import ReferPage from './pages/dashboard/ReferPage';
 import PartnerDetailPage from './pages/dashboard/PartnerDetailPage';
+import CreatePartnerPage from './pages/dashboard/CreatePartnerPage';
+import PartnerCreatedPage from './pages/dashboard/PartnerCreatedPage';
 import TeamPage from './pages/dashboard/TeamPage';
 import AdminPage from './pages/dashboard/AdminPage';
 import CompanyAdminPage from './pages/dashboard/CompanyAdminPage';
@@ -70,6 +72,16 @@ function App() {
           <Route path="company-admin" element={
             <ProtectedRoute requiredGroups={["partnerAdmin"]}>
               <CompanyAdminPage />
+            </ProtectedRoute>
+          } />
+          <Route path="company-admin/new-partner" element={
+            <ProtectedRoute requiredGroup="admin">
+              <CreatePartnerPage />
+            </ProtectedRoute>
+          } />
+          <Route path="company-admin/partner-created/:partnerId" element={
+            <ProtectedRoute requiredGroup="admin">
+              <PartnerCreatedPage />
             </ProtectedRoute>
           } />
           <Route path="admin" element={
