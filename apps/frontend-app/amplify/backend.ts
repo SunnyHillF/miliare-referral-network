@@ -6,7 +6,7 @@ import {
   LambdaIntegration,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
-import { Policy, PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
+import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
