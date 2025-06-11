@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// Icons are referenced by name via an icon map; avoid importing unused icons
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';

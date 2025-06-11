@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userData.email,
             given_name: userData.firstName,
             family_name: userData.lastName,
-            // Map company to partnerId for now - will have proper company->partnerId mapping later
+            // Map the selected company to the PartnerId custom attribute in Cognito
             'custom:partnerId': userData.company,
             'custom:uplineSMD': userData.uplineSMD || '',
             'custom:uplineEVC': userData.uplineEVC || '',
