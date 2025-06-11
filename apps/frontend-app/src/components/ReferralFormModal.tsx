@@ -41,10 +41,14 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOp
         toast.error('Configuration error', 'Webhook URL missing.');
         return;
       }
+      const formData = new URLSearchParams();
+      Object.entries({ ...data, source: partnerName }).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
       await fetch(webhookUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, source: partnerName }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
       });
       toast.success('Referral submitted', 'Thank you for your referral.');
       close();
