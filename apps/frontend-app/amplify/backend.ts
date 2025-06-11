@@ -1,18 +1,93 @@
 import { defineBackend } from '@aws-amplify/backend';
+import { Stack } from 'aws-cdk-lib';
+import {
+  AuthorizationType,
+  Cors,
+  LambdaIntegration,
+  RestApi,
+} from 'aws-cdk-lib/aws-apigateway';
+import { Policy, PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
 
-defineBackend({
+const backend = defineBackend({
   auth,
   data,
   updateReferralStatusWebhook,
-  api: {
-    updateReferralStatusWebhook: {
-      path: '/webhook/referrals/{referralId}',
-      method: 'POST',
-      authorizationType: 'apiKey',
-      function: updateReferralStatusWebhook,
+});
+
+// Create a new API stack for the REST API
+const apiStack = backend.createStack('webhook-api-stack');
+
+// Create a new REST API
+const webhookRestApi = new RestApi(apiStack, 'WebhookRestApi', {
+  restApiName: 'referralWebhookApi',
+  deploy: true,
+  deployOptions: {
+    stageName: 'prod',
+  },
+  defaultCorsPreflightOptions: {
+    allowOrigins: Cors.ALL_ORIGINS,
+    allowMethods: Cors.ALL_METHODS,
+    allowHeaders: Cors.DEFAULT_HEADERS,
+  },
+});
+
+// Create a new Lambda integration
+const webhookLambdaIntegration = new LambdaIntegration(
+  backend.updateReferralStatusWebhook.resources.lambda
+);
+
+// Create the webhook resource path: /webhook/referrals/{referralId}
+const webhookPath = webhookRestApi.root.addResource('webhook');
+const referralsPath = webhookPath.addResource('referrals');
+const referralIdPath = referralsPath.addResource('{referralId}', {
+  defaultMethodOptions: {
+    authorizationType: AuthorizationType.IAM,
+  },
+});
+
+// Add POST method for the webhook
+referralIdPath.addMethod('POST', webhookLambdaIntegration);
+
+// Create IAM policy to allow Invoke access to the API
+const apiRestPolicy = new Policy(apiStack, 'WebhookApiPolicy', {
+  statements: [
+    new PolicyStatement({
+      actions: ['execute-api:Invoke'],
+      resources: [
+        `${webhookRestApi.arnForExecuteApi('*', '/webhook/referrals/*', 'prod')}`,
+      ],
+    }),
+  ],
+});
+
+// Attach the policy to the authenticated and unauthenticated IAM roles
+backend.auth.resources.authenticatedUserIamRole.attachInlinePolicy(apiRestPolicy);
+backend.auth.resources.unauthenticatedUserIamRole.attachInlinePolicy(apiRestPolicy);
+
+// Grant the function access to the data models
+backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ['appsync:GraphQL'],
+    resources: [
+      `${backend.data.resources.graphqlApi.arn}/types/Partner/fields/*`,
+      `${backend.data.resources.graphqlApi.arn}/types/Referral/fields/*`,
+    ],
+  })
+);
+
+// Add outputs to the configuration file
+backend.addOutput({
+  custom: {
+    API: {
+      [webhookRestApi.restApiName]: {
+        endpoint: webhookRestApi.url,
+        region: Stack.of(webhookRestApi).region,
+        apiName: webhookRestApi.restApiName,
+      },
     },
   },
 });
