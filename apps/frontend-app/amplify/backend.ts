@@ -65,16 +65,6 @@ backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
   })
 );
 
-// Add outputs to the configuration file
-backend.addOutput({
-  custom: {
-    API: {
-      [webhookRestApi.restApiName]: {
-        endpoint: webhookRestApi.url,
-        region: Stack.of(webhookRestApi).region,
-        apiName: webhookRestApi.restApiName,
-
-      },
-    },
-  },
-});
+// Note: Webhook API endpoint will be available in AWS Console
+// External services can find the endpoint at:
+// AWS API Gateway Console → APIs → "referralWebhookApi"
