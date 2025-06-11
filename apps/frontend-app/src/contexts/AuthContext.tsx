@@ -107,8 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userData.email,
             given_name: userData.firstName,
             family_name: userData.lastName,
-            // You can add custom attributes for company, upline, etc.
-            'custom:company': userData.company,
+            // Map company to partnerId for now - will have proper company->partnerId mapping later
+            'custom:partnerId': userData.company,
             'custom:uplineSMD': userData.uplineSMD || '',
             'custom:uplineEVC': userData.uplineEVC || '',
           },
