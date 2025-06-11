@@ -79,6 +79,7 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ data }) => {
             font: {
               size: 12,
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             callback: function(value: any) {
               return '$' + value.toLocaleString();
             },
@@ -96,6 +97,7 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ data }) => {
           borderColor: '#1e40af',
           borderWidth: 1,
           callbacks: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             label: function(context: any) {
               return 'Earnings: $' + context.parsed.y.toLocaleString();
             },
