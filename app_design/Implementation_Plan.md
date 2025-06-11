@@ -196,3 +196,11 @@ aws-amplify
 ---
 
 **Status**: 🎉 **Miliare is ready for user onboarding and business validation!**
+
+## Admin Partner Onboarding
+
+The admin dashboard now includes a form for creating partner companies and inviting a designated partner administrator. When the form is submitted the app:
+1. Creates a `Partner` record via the Amplify Data client.
+2. Uses the AWS SDK `CognitoIdentityProviderClient` to create a new user, assign them to the `partnerAdmin` group and set the `custom:partnerId` attribute.
+
+Environment variables `VITE_AWS_REGION` and `VITE_COGNITO_USER_POOL_ID` must be configured for the invitation to succeed.
