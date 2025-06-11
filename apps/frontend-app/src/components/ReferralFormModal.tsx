@@ -36,6 +36,11 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOp
   const onSubmit = async (data: FormValues) => {
     try {
       const webhookUrl = import.meta.env.VITE_ZAPIER_WEBHOOK_URL;
+      if (!webhookUrl) {
+        console.error('VITE_ZAPIER_WEBHOOK_URL not defined');
+        toast.error('Configuration error', 'Webhook URL missing.');
+        return;
+      }
       await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
