@@ -7,14 +7,22 @@ export type TeamMember = {
   totalReferrals: number;
   pendingCommissions: number;
   successRate: number; // value between 0 and 1
+  active?: boolean;
 };
 
 interface TeamMembersCardProps {
   members: TeamMember[];
   onViewAll?: () => void;
+  showStatusToggle?: boolean;
+  onToggleStatus?: (id: number) => void;
 }
 
-const TeamMembersCard: React.FC<TeamMembersCardProps> = ({ members, onViewAll }) => {
+const TeamMembersCard: React.FC<TeamMembersCardProps> = ({
+  members,
+  onViewAll,
+  showStatusToggle,
+  onToggleStatus,
+}) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
       <div className="flex justify-between items-center mb-4">
@@ -36,6 +44,17 @@ const TeamMembersCard: React.FC<TeamMembersCardProps> = ({ members, onViewAll })
               <p>Pending Commissions: ${member.pendingCommissions.toLocaleString()}</p>
               <p>Success Rate: {Math.round(member.successRate * 100)}%</p>
             </div>
+            {showStatusToggle && (
+              <div className="mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onToggleStatus && onToggleStatus(member.id)}
+                >
+                  {member.active ? 'Deactivate' : 'Activate'}
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -57,6 +76,11 @@ const TeamMembersCard: React.FC<TeamMembersCardProps> = ({ members, onViewAll })
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Success Rate
               </th>
+              {showStatusToggle && (
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -74,6 +98,17 @@ const TeamMembersCard: React.FC<TeamMembersCardProps> = ({ members, onViewAll })
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                   {Math.round(member.successRate * 100)}%
                 </td>
+                {showStatusToggle && (
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onToggleStatus && onToggleStatus(member.id)}
+                    >
+                      {member.active ? 'Deactivate' : 'Activate'}
+                    </Button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
