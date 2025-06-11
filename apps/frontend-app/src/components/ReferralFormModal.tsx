@@ -35,7 +35,8 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOp
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await fetch('https://hooks.zapier.com/hooks/catch/16444537/uydvaog/', {
+      const webhookUrl = import.meta.env.VITE_ZAPIER_WEBHOOK_URL;
+      await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, source: partnerName }),
