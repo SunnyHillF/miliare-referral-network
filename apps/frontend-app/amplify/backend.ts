@@ -3,7 +3,7 @@ import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
 
-const backend = defineBackend({
+export const backend = defineBackend({
   auth,
   data,
   updateReferralStatusWebhook,
