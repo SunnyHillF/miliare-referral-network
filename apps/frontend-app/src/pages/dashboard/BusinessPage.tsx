@@ -6,6 +6,7 @@ import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import PendingReferralsCard, { PendingReferral } from '../../components/PendingReferralsCard';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
+import ReferralModal from '../../components/ReferralModal';
 
 const BusinessPage = () => {
   
@@ -22,11 +23,14 @@ const BusinessPage = () => {
     { id: 4, date: '2023-03-05', amount: 830.00, status: 'Paid', company: 'Summit Business Syndicate' },
   ];
   
-  const pendingReferrals: PendingReferral[] = [
+  const [pendingReferrals, setPendingReferrals] = useState<PendingReferral[]>([
     { id: 1, date: '2023-06-28', client: 'John Smith', company: 'Prime Corporate Services', status: 'In Progress', estimatedCommission: 850.00 },
     { id: 2, date: '2023-06-25', client: 'Sarah Johnson', company: 'Sunny Hill Financial', status: 'In Progress', estimatedCommission: 1280.50 },
     { id: 3, date: '2023-06-20', client: 'Michael Brown', company: 'Impact Health Sharing', status: 'In Review', estimatedCommission: 300.00 },
-  ];
+  ]);
+
+  const [selectedReferral, setSelectedReferral] = useState<PendingReferral | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const earningsData6Months: EarningsPoint[] = [
     { month: 'Jan', earnings: 2000 },
@@ -94,6 +98,18 @@ const BusinessPage = () => {
     console.log('Navigate to all referrals page');
   };
 
+  const handleReferralClick = (referral: PendingReferral) => {
+    setSelectedReferral(referral);
+    setModalOpen(true);
+  };
+
+  const handleSaveReferral = (updated: PendingReferral) => {
+    setPendingReferrals((prev) =>
+      prev.map((r) => (r.id === updated.id ? updated : r))
+    );
+    setModalOpen(false);
+  };
+
   const handleViewPaymentHistory = () => {
     console.log('Navigate to payment history page');
   };
@@ -133,9 +149,10 @@ const BusinessPage = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pending Referrals Component */}
-        <PendingReferralsCard 
+        <PendingReferralsCard
           referrals={pendingReferrals}
           onViewAll={handleViewAllReferrals}
+          onReferralClick={handleReferralClick}
         />
         
         {/* Recent Payments Component */}
@@ -163,6 +180,12 @@ const BusinessPage = () => {
           </div>
         </div>
       </div>
+      <ReferralModal
+        referral={selectedReferral}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSaveReferral}
+      />
     </div>
   );
 };
