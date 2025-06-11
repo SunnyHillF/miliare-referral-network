@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Amplify } from 'aws-amplify';
 import { signIn, signUp, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 /* eslint react-refresh/only-export-components: 0 */
 
@@ -17,7 +18,7 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   register: (userData: Omit<User, 'id' | 'groups'> & { password: string }) => Promise<boolean>;
 };
@@ -29,6 +30,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const remember = localStorage.getItem('rememberMe');
+    Amplify.configure({
+      Auth: {
+        storage: remember === 'false' ? window.sessionStorage : window.localStorage,
+      },
+    });
     checkAuthStatus();
   }, []);
 
@@ -65,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe = true) => {
     setIsLoading(true);
     try {
       // If a user is already authenticated, sign them out first to avoid
@@ -77,12 +84,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // getCurrentUser throws if no user is signed in; ignore in that case
       }
 
+      Amplify.configure({
+        Auth: {
+          storage: rememberMe ? window.localStorage : window.sessionStorage,
+        },
+      });
+
       const { isSignedIn } = await signIn({
         username: email,
         password: password,
       });
 
       if (isSignedIn) {
+        localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
         await checkAuthStatus();
       }
     } catch (error) {
