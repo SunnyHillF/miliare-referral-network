@@ -3,7 +3,7 @@ import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
-import PendingReferralsCard, { PendingReferral } from '../../components/PendingReferralsCard';
+import TeamMembersCard, { TeamMember } from '../../components/TeamMembersCard';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
 
 const TeamPage = () => {
@@ -20,10 +20,10 @@ const TeamPage = () => {
     { id: 4, date: '2023-03-05', amount: 830.00, status: 'Paid', company: 'Summit Business Syndicate' },
   ];
   
-  const pendingReferrals: PendingReferral[] = [
-    { id: 1, date: '2023-06-28', client: 'John Smith', company: 'Prime Corporate Services', status: 'In Progress', estimatedCommission: 850.00 },
-    { id: 2, date: '2023-06-25', client: 'Sarah Johnson', company: 'Sunny Hill Financial', status: 'In Progress', estimatedCommission: 1280.50 },
-    { id: 3, date: '2023-06-20', client: 'Michael Brown', company: 'Impact Health Sharing', status: 'In Review', estimatedCommission: 300.00 },
+  const teamMembers: TeamMember[] = [
+    { id: 1, name: 'Alice Thompson', totalReferrals: 42, pendingCommissions: 1250.5, successRate: 0.73 },
+    { id: 2, name: 'Brian Davis', totalReferrals: 37, pendingCommissions: 980.0, successRate: 0.68 },
+    { id: 3, name: 'Carla Martinez', totalReferrals: 56, pendingCommissions: 2100.75, successRate: 0.81 },
   ];
 
   // Team earnings data (higher values than individual business)
@@ -89,8 +89,8 @@ const TeamPage = () => {
     },
   ];
 
-  const handleViewAllReferrals = () => {
-    console.log('Navigate to all team referrals page');
+  const handleViewAllMembers = () => {
+    console.log('Navigate to all team members page');
   };
 
   const handleViewPaymentHistory = () => {
@@ -132,10 +132,10 @@ const TeamPage = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Pending Referrals Component */}
-        <PendingReferralsCard 
-          referrals={pendingReferrals}
-          onViewAll={handleViewAllReferrals}
+        {/* Team Members Component */}
+        <TeamMembersCard
+          members={teamMembers}
+          onViewAll={handleViewAllMembers}
         />
         
         {/* Recent Payments Component */}

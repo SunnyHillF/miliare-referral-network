@@ -80,8 +80,9 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ data }) => {
             font: {
               size: 12,
             },
-            callback: function(value: number | string) {
-              return '$' + Number(value).toLocaleString();
+            callback: function(value: string | number) {
+              const num = typeof value === 'number' ? value : parseFloat(value);
+              return '$' + num.toLocaleString();
             },
           },
         },

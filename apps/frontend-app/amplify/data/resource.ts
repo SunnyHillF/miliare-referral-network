@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { updateReferralStatusWebhook } from "../functions/updateReferralStatusWebhook/resource";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -51,11 +52,14 @@ const schema = a.schema({
       mrnPercentage: a.float(),
       contractorPercentage: a.float(),
       trainingLinks: a.string().array(),
+      webhookApiKeyHash: a.string(),
+      webhookUrl: a.string(),
       referrals: a.hasMany("Referral", "partnerId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
       allow.groups(["admin"]),
+      allow.groups(["partnerAdmin"]).to(["read", "update"]),
       allow.groups(["teamLead"]).to(["read"])
     ]),
 
@@ -143,6 +147,9 @@ export const data = defineData({
   authorizationModes: {
     defaultAuthorizationMode: "userPool",
   },
+  functions: {
+    updateReferralStatusWebhook
+  }
 });
 
 /*== STEP 2 ===============================================================
