@@ -29,10 +29,12 @@ const webhookRestApi = new RestApi(apiStack, 'WebhookRestApi', {
   },
   defaultCorsPreflightOptions: {
     allowOrigins: Cors.ALL_ORIGINS,
-    allowMethods: Cors.ALL_METHODS,
-    allowHeaders: Cors.DEFAULT_HEADERS,
+    allowMethods: ['POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
   },
 });
+
+// API key validation will be handled internally by the function
 
 // Create a new Lambda integration
 const webhookLambdaIntegration = new LambdaIntegration(
@@ -44,28 +46,12 @@ const webhookPath = webhookRestApi.root.addResource('webhook');
 const referralsPath = webhookPath.addResource('referrals');
 const referralIdPath = referralsPath.addResource('{referralId}', {
   defaultMethodOptions: {
-    authorizationType: AuthorizationType.IAM,
+    authorizationType: AuthorizationType.NONE,
   },
 });
 
 // Add POST method for the webhook
 referralIdPath.addMethod('POST', webhookLambdaIntegration);
-
-// Create IAM policy to allow Invoke access to the API
-const apiRestPolicy = new Policy(apiStack, 'WebhookApiPolicy', {
-  statements: [
-    new PolicyStatement({
-      actions: ['execute-api:Invoke'],
-      resources: [
-        `${webhookRestApi.arnForExecuteApi('*', '/webhook/referrals/*', 'prod')}`,
-      ],
-    }),
-  ],
-});
-
-// Attach the policy to the authenticated and unauthenticated IAM roles
-backend.auth.resources.authenticatedUserIamRole.attachInlinePolicy(apiRestPolicy);
-backend.auth.resources.unauthenticatedUserIamRole.attachInlinePolicy(apiRestPolicy);
 
 // Grant the function access to the data models
 backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
@@ -87,6 +73,7 @@ backend.addOutput({
         endpoint: webhookRestApi.url,
         region: Stack.of(webhookRestApi).region,
         apiName: webhookRestApi.restApiName,
+
       },
     },
   },
