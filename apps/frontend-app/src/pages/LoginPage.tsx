@@ -22,6 +22,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(
+    localStorage.getItem('rememberMe') !== 'false'
+  );
   
   // Pre-fill email if coming from verification page
   const preFilledEmail = (location.state as { email?: string })?.email || '';
@@ -37,7 +40,7 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
+      await login(data.email, data.password, rememberMe);
       toast.success('Login successful', 'Welcome back!');
       navigate('/dashboard');
     } catch (error: unknown) {
@@ -89,6 +92,14 @@ const LoginPage = () => {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  checked={rememberMe}
+                  onChange={(e) => {
+                    setRememberMe(e.target.checked);
+                    localStorage.setItem(
+                      'rememberMe',
+                      e.target.checked ? 'true' : 'false'
+                    );
+                  }}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
