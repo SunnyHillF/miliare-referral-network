@@ -51,11 +51,14 @@ const schema = a.schema({
       mrnPercentage: a.float(),
       contractorPercentage: a.float(),
       trainingLinks: a.string().array(),
+      webhookApiKeyHash: a.string(),
+      webhookUrl: a.string(),
       referrals: a.hasMany("Referral", "partnerId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
       allow.groups(["admin"]),
+      allow.groups(["partnerAdmin"]).to(["read", "update"]),
       allow.groups(["teamLead"]).to(["read"])
     ]),
 
