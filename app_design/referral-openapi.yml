@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: Referral Status Webhook
+  version: 1.0.0
+  description: |
+    REST endpoint for partners to update referral status using an API key.
+servers:
+  - url: https://api-dev.miliarereferral.com
+paths:
+  /webhook/referrals/{referralId}:
+    post:
+      summary: Update referral status
+      parameters:
+        - name: referralId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [IN_PROGRESS, IN_REVIEW, PAID, REJECTED]
+              required:
+                - status
+      responses:
+        '200':
+          description: Updated
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
