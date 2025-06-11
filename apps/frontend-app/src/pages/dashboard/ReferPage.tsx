@@ -3,16 +3,18 @@ import {
   Send,
   CircleDollarSign,
   BadgePercent,
-  Link as LinkIcon 
+  Link as LinkIcon
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { partnersData } from '../../data/partnersData';
 import { toast } from '../../components/ui/Toaster';
+import ReferralFormModal from '../../components/ReferralFormModal';
 
 const ReferPage = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activePartner, setActivePartner] = useState<string | null>(null);
   
   // Derive categories from partners data
   const categories = Array.from(
@@ -127,20 +129,14 @@ const ReferPage = () => {
                   Copy Link
                 </Button>
                 
-                <a 
-                  href={partner.referralUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-block"
+                <Button
+                  className="w-full flex items-center justify-center"
+                  size="sm"
+                  onClick={() => setActivePartner(partner.name)}
                 >
-                  <Button
-                    className="w-full flex items-center justify-center"
-                    size="sm"
-                  >
-                    <Send className="mr-1 h-4 w-4" />
-                    Refer Now
-                  </Button>
-                </a>
+                  <Send className="mr-1 h-4 w-4" />
+                  Refer Now
+                </Button>
               </div>
             </div>
           </div>
@@ -195,6 +191,11 @@ const ReferPage = () => {
           </div>
         </div>
       </div>
+      <ReferralFormModal
+        partnerName={activePartner}
+        isOpen={Boolean(activePartner)}
+        onClose={() => setActivePartner(null)}
+      />
     </div>
   );
 };
