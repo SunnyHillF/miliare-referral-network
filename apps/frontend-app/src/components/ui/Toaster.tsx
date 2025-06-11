@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 /* eslint react-refresh/only-export-components: 0 */
 import { createRoot, type Root } from 'react-dom/client';
 import { X } from 'lucide-react';
@@ -103,10 +103,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const addToast = (props: Omit<ToastProps, 'id' | 'onClose'>) => {
+  const addToast = useCallback((props: Omit<ToastProps, 'id' | 'onClose'>) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { ...props, id, onClose: removeToast }]);
-  };
+  }, []);
 
   const contextValue: ToastContextType = {
     toast: addToast,
@@ -115,6 +115,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     warning: (title, message) => addToast({ type: 'warning', title, message }),
     info: (title, message) => addToast({ type: 'info', title, message }),
   };
+
+  useEffect(() => {
+    const handleToast = (event: Event) => {
+      const { detail } = event as CustomEvent<Omit<ToastProps, 'id' | 'onClose'>>;
+      addToast(detail);
+    };
+
+    document.addEventListener('toast', handleToast as EventListener);
+    return () => {
+      document.removeEventListener('toast', handleToast as EventListener);
+    };
+  }, [addToast]);
 
   return (
     <ToastContext.Provider value={contextValue}>
