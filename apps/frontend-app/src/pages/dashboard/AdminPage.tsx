@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -24,9 +24,22 @@ type PartnerFormValues = z.infer<typeof partnerSchema>;
 
 const AdminPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [partners, setPartners] = useState<Schema['Partner']['type'][]>([]);
   const { register, handleSubmit, formState: { errors } } = useForm<PartnerFormValues>({
     resolver: zodResolver(partnerSchema),
   });
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const { data } = await client.models.Partner.list();
+        setPartners(data);
+      } catch (error) {
+        console.error('Failed to load partners', error);
+      }
+    };
+    fetchPartners();
+  }, []);
 
   const onSubmit = async (data: PartnerFormValues) => {
     setIsSubmitting(true);
@@ -37,6 +50,8 @@ const AdminPage = () => {
         website: data.website,
         status: 'ACTIVE',
       });
+
+      setPartners((prev) => [...prev, partner]);
 
       await invitePartnerAdmin({
         email: data.adminEmail,
@@ -79,6 +94,20 @@ const AdminPage = () => {
           </Button>
         </form>
       </div>
+
+      {partners.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+          <h2 className="text-xl font-semibold mb-4">Existing Partners</h2>
+          <ul className="space-y-2">
+            {partners.map((p) => (
+              <li key={p.id} className="flex justify-between">
+                <span>{p.name}</span>
+                <span className="text-sm text-gray-500">{p.status}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
