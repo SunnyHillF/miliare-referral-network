@@ -1,7 +1,8 @@
 import { defineData, a } from '@aws-amplify/backend';
+import type { ClientSchema } from '@aws-amplify/backend';
 import { updateReferralStatusWebhook } from "../functions/updateReferralStatusWebhook/resource";
 
-const schema = a.schema({
+export const schema = a.schema({
   // Company model
   Company: a.model({
     id: a.id(),
@@ -83,6 +84,8 @@ const schema = a.schema({
     allow.group('orgLead').to(['update','read'])
   ])
 });
+
+export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
