@@ -1,4 +1,7 @@
 import React from 'react';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../amplify/data/resource';
+import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,12 +21,14 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface ReferralFormModalProps {
-  companyName: string | null;
+  company: { id: string; name: string } | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ companyName, isOpen, onClose }) => {
+const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ company, isOpen, onClose }) => {
+  const { user } = useAuth();
+  const client = generateClient<Schema>();
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
@@ -35,21 +40,31 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ companyName, isOp
 
   const onSubmit = async (data: FormValues) => {
     try {
+      await client.models.Referral.create({
+        name: data.name,
+        email: data.email,
+        phoneNumber: data.phone,
+        approximateValue: parseFloat(data.value),
+        notes: data.referralType,
+        status: 'IN_PROGRESS',
+        userId: user?.id,
+        companyId: company?.id,
+        createdAt: new Date().toISOString(),
+      });
+
       const webhookUrl = import.meta.env.VITE_ZAPIER_WEBHOOK_URL;
-      if (!webhookUrl) {
-        console.error('VITE_ZAPIER_WEBHOOK_URL not defined');
-        toast.error('Configuration error', 'Webhook URL missing.');
-        return;
+      if (webhookUrl) {
+        const formData = new URLSearchParams();
+        Object.entries({ ...data, source: company?.name }).forEach(([key, value]) => {
+          formData.append(key, String(value));
+        });
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString(),
+        });
       }
-      const formData = new URLSearchParams();
-      Object.entries({ ...data, source: companyName }).forEach(([key, value]) => {
-        formData.append(key, String(value));
-      });
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(),
-      });
+
       toast.success('Referral submitted', 'Thank you for your referral.');
       close();
     } catch (error) {
@@ -59,7 +74,7 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ companyName, isOp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} title={companyName ? `Refer to ${companyName}` : 'Refer Client'}>
+    <Modal isOpen={isOpen} onClose={close} title={company ? `Refer to ${company.name}` : 'Refer Client'}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label="Name" {...register('name')} error={errors.name?.message} />
         <Input label="Email" type="email" {...register('email')} error={errors.email?.message} />

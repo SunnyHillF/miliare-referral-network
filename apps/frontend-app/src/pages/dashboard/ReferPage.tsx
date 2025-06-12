@@ -18,7 +18,7 @@ const client = generateClient<Schema>();
 const ReferPage = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [activeCompany, setActiveCompany] = useState<string | null>(null);
+  const [activeCompany, setActiveCompany] = useState<{ id: string; name: string } | null>(null);
   const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
 
   useEffect(() => {
@@ -153,7 +153,7 @@ const ReferPage = () => {
                 <Button
                   className="w-full flex items-center justify-center"
                   size="sm"
-                  onClick={() => setActiveCompany(company.name)}
+                  onClick={() => setActiveCompany({ id: company.id, name: company.name })}
                 >
                   <Send className="mr-1 h-4 w-4" />
                   Refer Now
@@ -214,7 +214,7 @@ const ReferPage = () => {
         </div>
       </div>
       <ReferralFormModal
-        companyName={activeCompany}
+        company={activeCompany}
         isOpen={Boolean(activeCompany)}
         onClose={() => setActiveCompany(null)}
       />
