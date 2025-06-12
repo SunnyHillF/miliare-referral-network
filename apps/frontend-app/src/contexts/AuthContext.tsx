@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession } from 'aws-amplify/auth';
+import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
 /* eslint react-refresh/only-export-components: 0 */
 
 type User = {
@@ -39,21 +39,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession();
-      
+
       if (currentUser && session.tokens) {
         const groups =
           (session.tokens.idToken?.payload['cognito:groups'] as string[]) || [];
 
-        // Convert Amplify user to our User type
+        const attributes = await fetchUserAttributes();
+
         const userData: User = {
           id: currentUser.userId,
-          firstName: 'User', // Will be populated from user attributes
-          lastName: '', // Will be populated from user attributes
-          email: currentUser.signInDetails?.loginId || '',
-          company: 'WFG', // Default for now, could come from user attributes
+          firstName: attributes.given_name ?? 'User',
+          lastName: attributes.family_name ?? '',
+          email: attributes.email ?? currentUser.signInDetails?.loginId ?? '',
+          company: attributes['custom:partnerId'] ?? 'WFG',
           groups,
-          uplineSMD: undefined, // Could come from user attributes
-          uplineEVC: undefined, // Could come from user attributes
+          uplineSMD: attributes['custom:uplineSMD'] || undefined,
+          uplineEVC: attributes['custom:uplineEVC'] || undefined,
         };
         setUser(userData);
       }
@@ -147,6 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       if (updates.company !== undefined) {
         attributes['custom:partnerId'] = updates.company;
+      }
+      if (updates.email !== undefined) {
+        attributes['email'] = updates.email;
       }
       if (updates.uplineSMD !== undefined) {
         attributes['custom:uplineSMD'] = updates.uplineSMD;

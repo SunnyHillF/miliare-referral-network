@@ -23,6 +23,7 @@ const companies = [
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
   company: z.string().min(1, 'Please select your company'),
   uplineEVC: z.string().optional(),
   uplineSMD: z.string().optional(),
@@ -38,6 +39,7 @@ const ProfilePage: React.FC = () => {
     defaultValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
+      email: user?.email || '',
       company: user?.company || '',
       uplineEVC: user?.uplineEVC || '',
       uplineSMD: user?.uplineSMD || '',
@@ -45,8 +47,10 @@ const ProfilePage: React.FC = () => {
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
+    const { company: _company, ...updates } = data;
+    void _company;
     try {
-      await updateProfile(data);
+      await updateProfile(updates);
       toast.success('Profile updated', 'Your changes have been saved.');
     } catch (error) {
       console.error('Profile update error:', error);
@@ -62,7 +66,8 @@ const ProfilePage: React.FC = () => {
           <Input label="First Name" {...register('firstName')} error={errors.firstName?.message} />
           <Input label="Last Name" {...register('lastName')} error={errors.lastName?.message} />
         </div>
-        <Select label="Company" options={companies} {...register('company')} error={errors.company?.message} />
+        <Input label="Email" type="email" {...register('email')} error={errors.email?.message} />
+        <Select label="Company" options={companies} disabled {...register('company')} error={errors.company?.message} />
         <Input label="Upline EVC" {...register('uplineEVC')} error={errors.uplineEVC?.message} />
         <Input label="Upline SMD" {...register('uplineSMD')} error={errors.uplineSMD?.message} />
         <div className="pt-4">
