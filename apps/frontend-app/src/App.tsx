@@ -10,6 +10,7 @@ import PartnerDetailPage from './pages/dashboard/PartnerDetailPage';
 import TeamPage from './pages/dashboard/TeamPage';
 import AdminPage from './pages/dashboard/AdminPage';
 import CompanyAdminPage from './pages/dashboard/CompanyAdminPage';
+import ProfilePage from './pages/dashboard/ProfilePage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import { Toaster } from './components/ui/Toaster';
@@ -62,6 +63,7 @@ function App() {
           <Route index element={<BusinessPage />} />
           <Route path="learn" element={<LearnPage />} />
           <Route path="refer" element={<ReferPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="team" element={
             <ProtectedRoute requiredGroup="teamLead">
               <TeamPage />
