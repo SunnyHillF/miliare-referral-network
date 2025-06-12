@@ -52,7 +52,7 @@ const DashboardLayout = () => {
   }
 
   if (user?.groups?.includes('partnerAdmin') || user?.groups?.includes('admin')) {
-    navLinks.push({ to: '/dashboard/company-admin', icon: <Settings className="h-5 w-5" />, label: 'Admin' });
+    navLinks.push({ to: '/dashboard/company-admin', icon: <Settings className="h-5 w-5" />, label: 'Organization' });
   }
 
   if (user?.groups?.includes('admin')) {
