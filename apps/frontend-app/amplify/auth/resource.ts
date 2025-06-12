@@ -13,12 +13,12 @@ export const auth = defineAuth({
     },
   },
   // User pool groups used throughout the app for authorization
-  groups: ["admin", "teamLead", "partnerAdmin"],
+  groups: ["admin", "teamLead", "orgLead", "companyAdmin", "siteAdmin"],
   userAttributes: {
     // Standard attributes
     email: {
       required: true,
-      mutable: true,
+      mutable: false,
     },
     givenName: {
       required: true,
@@ -45,11 +45,7 @@ export const auth = defineAuth({
       dataType: 'String',
       mutable: true,
     },
-    'custom:uplineEVC': {
-      dataType: 'String',
-      mutable: true,
-    },
-    'custom:uplineSMD': {
+    'custom:orgLeadId': {
       dataType: 'String',
       mutable: true,
     },

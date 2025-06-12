@@ -51,13 +51,19 @@ const DashboardLayout = () => {
     navLinks.push({ to: '/dashboard/team', icon: <Users className="h-5 w-5" />, label: 'Team' });
   }
 
-  if (user?.groups?.includes('partnerAdmin') || user?.groups?.includes('admin')) {
-    navLinks.push({ to: '/dashboard/company-admin', icon: <Settings className="h-5 w-5" />, label: 'Organization' });
-    navLinks.push({ to: '/dashboard/company-admin-tools', icon: <Settings className="h-5 w-5" />, label: 'Company Admin' });
+  if (user?.groups?.includes('orgLead') || user?.groups?.includes('admin')) {
+    navLinks.push({ to: '/dashboard/organization', icon: <Settings className="h-5 w-5" />, label: 'Organization' });
+  }
+
+  if (user?.groups?.includes('companyAdmin') || user?.groups?.includes('admin')) {
+    navLinks.push({ to: '/dashboard/company-admin', icon: <Settings className="h-5 w-5" />, label: 'Company Admin' });
+  }
+
+  if (user?.groups?.includes('siteAdmin') || user?.groups?.includes('admin')) {
+    navLinks.push({ to: '/dashboard/site-admin', icon: <Settings className="h-5 w-5" />, label: 'Site Admin' });
   }
 
   if (user?.groups?.includes('admin')) {
-    navLinks.push({ to: '/dashboard/site-admin', icon: <Settings className="h-5 w-5" />, label: 'Site Admin' });
     navLinks.push({ to: '/dashboard/admin', icon: <Settings className="h-5 w-5" />, label: 'Admin' });
   }
   
