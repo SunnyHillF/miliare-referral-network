@@ -6,8 +6,12 @@ import { z } from 'zod';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { toast } from '../components/ui/Toaster';
-import { confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
+import { confirmSignUp, resendSignUpCode, fetchUserAttributes } from 'aws-amplify/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../amplify/data/resource';
+
+const client = generateClient<Schema>();
 
 const verifySchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -50,6 +54,34 @@ const VerifyEmailPage: React.FC = () => {
       if (tempPassword) {
         // Auto-login the user after successful verification
         await login(data.email, tempPassword);
+        
+        // Save user to DynamoDB after successful login
+        try {
+          const attributes = await fetchUserAttributes();
+          
+          // Create user record in DynamoDB
+          await client.models.User.create({
+            id: attributes.sub!, // Cognito user ID
+            name: `${attributes.given_name || ''} ${attributes.family_name || ''}`.trim(),
+            email: attributes.email!,
+            phone: attributes.phone_number,
+            address: attributes.address,
+            teamId: attributes['custom:teamId'],
+            teamLead: false, // Default to false, will be set by admin later
+            teamLeadId: attributes['custom:teamLeadId'],
+            orgLeadId: attributes['custom:orgLeadId'],
+            companyId: attributes['custom:companyId']!, // Foreign key for company relationship
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          
+          console.log('User saved to DynamoDB successfully');
+        } catch (dbError) {
+          // Log the error but don't fail the verification process
+          console.error('Failed to save user to DynamoDB:', dbError);
+          // The user is still verified and logged in, just not in the database yet
+        }
+        
         // Clear the temporary password
         sessionStorage.removeItem('tempPassword');
         toast.success('Email verified!', 'Welcome to Miliare');

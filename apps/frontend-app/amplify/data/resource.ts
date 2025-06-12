@@ -25,8 +25,8 @@ export const schema = a.schema({
     createdAt: a.string().required(),
     updatedAt: a.string(),
     // Relationships
-    users: a.hasMany('User', ['id']),
-    referrals: a.hasMany('Referral', ['id'])
+    users: a.hasMany('User', 'companyId'),
+    referrals: a.hasMany('Referral', 'companyId')
   }).authorization((allow) => [
     allow.guest().to(['read']),
     allow.group('admin').to(['create', 'read', 'update', 'delete']),
@@ -46,9 +46,11 @@ export const schema = a.schema({
     orgLeadId: a.string(),
     bankInfoDocument: a.string(),
     taxDocument: a.string(),
-    // Relationships
-    company: a.belongsTo('Company', ['id']),
-    referrals: a.hasMany('Referral', ['id']),
+    // Company relationship
+    companyId: a.id(),
+    company: a.belongsTo('Company', 'companyId'),
+    // Referrals relationship
+    referrals: a.hasMany('Referral', 'userId'),
     createdAt: a.string().required(),
     updatedAt: a.string()
   }).authorization((allow) => [
@@ -86,8 +88,8 @@ export const schema = a.schema({
     // Split referral information
     splitUserIds: a.string().array(),
     // Relationships
-    user: a.belongsTo('User', ['id']),
-    company: a.belongsTo('Company', ['id']),
+    user: a.belongsTo('User', 'userId'),
+    company: a.belongsTo('Company', 'companyId'),
     teamLeadId: a.string(),
     orgLeadId: a.string(),
     createdAt: a.string().required(),

@@ -7,10 +7,13 @@ type User = {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber?: string;
+  address?: string;
   company: string;
   groups: string[];
-  uplineSMD?: string;
-  uplineEVC?: string;
+  teamId?: string;
+  orgLeadId?: string;
+  activated?: boolean;
 };
 
 type AuthContextType = {
@@ -51,10 +54,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstName: attributes.given_name ?? 'User',
           lastName: attributes.family_name ?? '',
           email: attributes.email ?? currentUser.signInDetails?.loginId ?? '',
+          phoneNumber: attributes.phone_number ?? undefined,
+          address: attributes.address ?? undefined,
           company: attributes['custom:companyId'] ?? 'WFG',
           groups,
-          uplineSMD: attributes['custom:uplineSMD'] || undefined,
-          uplineEVC: attributes['custom:uplineEVC'] || undefined,
+          teamId: attributes['custom:teamId'] ?? undefined,
+          orgLeadId: attributes['custom:orgLeadId'] ?? undefined,
+          activated: attributes['custom:activated'] === 'true',
         };
         setUser(userData);
       }
@@ -111,10 +117,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userData.email,
             given_name: userData.firstName,
             family_name: userData.lastName,
+            phone_number: userData.phoneNumber,
+            address: userData.address,
             // Map the selected company to the CompanyId custom attribute in Cognito
             'custom:companyId': userData.company,
-            'custom:uplineSMD': userData.uplineSMD || '',
-            'custom:uplineEVC': userData.uplineEVC || '',
+            'custom:teamId': userData.teamId || '',
+            'custom:orgLeadId': userData.orgLeadId || '',
+            'custom:activated': userData.activated ? 'true' : 'false',
           },
         },
       });
@@ -146,17 +155,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.lastName !== undefined) {
         attributes['family_name'] = updates.lastName;
       }
+      if (updates.phoneNumber !== undefined) {
+        attributes['phone_number'] = updates.phoneNumber;
+      }
+      if (updates.address !== undefined) {
+        attributes['address'] = updates.address;
+      }
       if (updates.company !== undefined) {
         attributes['custom:companyId'] = updates.company;
       }
-      if (updates.email !== undefined) {
-        attributes['email'] = updates.email;
+      if (updates.teamId !== undefined) {
+        attributes['custom:teamId'] = updates.teamId;
       }
-      if (updates.uplineSMD !== undefined) {
-        attributes['custom:uplineSMD'] = updates.uplineSMD;
+      if (updates.orgLeadId !== undefined) {
+        attributes['custom:orgLeadId'] = updates.orgLeadId;
       }
-      if (updates.uplineEVC !== undefined) {
-        attributes['custom:uplineEVC'] = updates.uplineEVC;
+      if (updates.activated !== undefined) {
+        attributes['custom:activated'] = updates.activated ? 'true' : 'false';
       }
       if (Object.keys(attributes).length > 0) {
         const { updateUserAttributes } = await import('aws-amplify/auth');

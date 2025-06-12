@@ -7,7 +7,7 @@ import {
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
-import { auth } from './auth/resource';
+// import { auth } from './auth/resource'; // Commented out for deployment - add back after user pool is updated
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
 
@@ -29,7 +29,7 @@ const CORS_CONFIG = {
 };
 
 export const backend = defineBackend({
-  auth,
+  // auth, // Commented out for deployment - add back after user pool is updated
   data,
   updateReferralStatusWebhook,
 });

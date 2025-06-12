@@ -3,10 +3,6 @@ import { RefreshCw, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
-import { getCurrentUser } from 'aws-amplify/auth';
-import crypto from 'crypto';
-
-const iconMap = { RefreshCw, Copy, Check };
 
 function generateApiKey() {
   // Generate a shorter, more manageable API key (32 characters)
@@ -15,9 +11,13 @@ function generateApiKey() {
   return Array.from(array, (val) => val.toString(16).padStart(8, '0')).join('');
 }
 
-function hashApiKey(apiKey: string): string {
-  // Create SHA-256 hash for storage
-  return crypto.createHash('sha256').update(apiKey).digest('hex');
+async function hashApiKey(apiKey: string): Promise<string> {
+  // Create SHA-256 hash using Web Crypto API (no external dependency needed)
+  const encoder = new TextEncoder();
+  const data = encoder.encode(apiKey);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Extract webhook API info from Amplify configuration
@@ -33,7 +33,7 @@ const getWebhookApiInfo = () => {
         return {
           baseUrl: apiInfo.endpoint.replace(/\/$/, ''),
           fullEndpoint: `${apiInfo.endpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-          region: apiInfo.region || 'us-east-1',
+          region: apiInfo.region || 'us-west-2',
           apiName: apiInfo.apiName || apiKey
         };
       }
@@ -44,9 +44,9 @@ const getWebhookApiInfo = () => {
   
   // Fallback for development or when outputs aren't available
   return {
-    baseUrl: 'https://[api-gateway-url].execute-api.[region].amazonaws.com/prod',
-    fullEndpoint: 'https://[api-gateway-url].execute-api.[region].amazonaws.com/prod/webhook/referrals/{referralId}',
-    region: 'us-east-1',
+    baseUrl: 'https://[api-gateway-url].execute-api.us-west-2.amazonaws.com/prod',
+    fullEndpoint: 'https://[api-gateway-url].execute-api.us-west-2.amazonaws.com/prod/webhook/referrals/{referralId}',
+    region: 'us-west-2',
     apiName: 'referralWebhookApi',
     isDevelopment: true
   };
@@ -61,7 +61,7 @@ const tryLoadAmplifyOutputs = async () => {
       return {
         baseUrl: apiEndpoint.replace(/\/$/, ''),
         fullEndpoint: `${apiEndpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-        region: process.env.REACT_APP_AWS_REGION || 'us-east-1',
+        region: process.env.REACT_APP_AWS_REGION || 'us-west-2',
         apiName: 'referralWebhookApi',
         isDevelopment: false
       };
@@ -76,7 +76,7 @@ const tryLoadAmplifyOutputs = async () => {
         return {
           baseUrl: apiInfo.endpoint.replace(/\/$/, ''),
           fullEndpoint: `${apiInfo.endpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-          region: apiInfo.region || 'us-east-1',
+          region: apiInfo.region || 'us-west-2',
           apiName: apiInfo.apiName || apiKey,
           isDevelopment: false
         };
@@ -98,9 +98,9 @@ const SiteAdminPage = () => {
   const [webhookInfo, setWebhookInfo] = useState(getWebhookApiInfo());
 
   const client = generateClient<Schema>();
-  const RefreshIcon = iconMap.RefreshCw;
-  const CopyIcon = copied ? iconMap.Check : iconMap.Copy;
-  const EndpointCopyIcon = endpointCopied ? iconMap.Check : iconMap.Copy;
+  const RefreshIcon = RefreshCw;
+  const CopyIcon = copied ? Check : Copy;
+  const EndpointCopyIcon = endpointCopied ? Check : Copy;
 
   // Load company data and try to get real webhook info on component mount
   useEffect(() => {
@@ -145,7 +145,7 @@ const SiteAdminPage = () => {
       
       // Generate new API key
       const newApiKey = generateApiKey();
-      const hashedKey = hashApiKey(newApiKey);
+      const hashedKey = await hashApiKey(newApiKey);
       
       // Update company with new hashed API key
       const updatedCompany = await client.models.Company.update({

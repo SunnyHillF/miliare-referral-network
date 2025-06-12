@@ -58,4 +58,12 @@ export const auth = defineAuth({
       mutable: true,
     },
   },
+  // Account recovery options
+  accountRecovery: "EMAIL_ONLY",
+  // Multi-factor authentication (optional but recommended)
+  multifactor: {
+    mode: "OPTIONAL",
+    totp: true,
+    sms: false, // Disable SMS for cost reasons, TOTP is more secure anyway
+  },
 });
