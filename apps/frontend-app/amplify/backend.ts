@@ -9,5 +9,5 @@ export const backend = defineBackend({
   updateReferralStatusWebhook,
 });
 
-// TODO: Re-add REST API configuration once frontend issue is resolved
-// The function is still deployed and accessible via direct Lambda invocation
+// REST API exposing the updateReferralStatusWebhook Lambda
+import './webhook-api';
