@@ -8,16 +8,21 @@ export type RecentPayment = {
   amount: number;
   status: string;
   company: string;
+  paid?: boolean;
 };
 
 interface RecentPaymentsCardProps {
   payments: RecentPayment[];
   onViewHistory?: () => void;
+  showStatusToggle?: boolean;
+  onToggleStatus?: (id: number) => void;
 }
 
-const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({ 
-  payments, 
-  onViewHistory 
+const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
+  payments,
+  onViewHistory,
+  showStatusToggle,
+  onToggleStatus,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -30,7 +35,10 @@ const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
       
       <div className="space-y-4">
         {payments.map((payment) => (
-          <div key={payment.id} className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div
+            key={payment.id}
+            className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <div className="flex-shrink-0">
               <CreditCard className="h-8 w-8 text-gray-400" />
             </div>
@@ -42,6 +50,17 @@ const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
               <p className="text-sm font-semibold text-gray-900">${payment.amount.toLocaleString()}</p>
               <p className="text-xs font-medium text-green-600">{payment.status}</p>
             </div>
+            {showStatusToggle && (
+              <div className="ml-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onToggleStatus && onToggleStatus(payment.id)}
+                >
+                  {payment.paid ? 'Mark Unpaid' : 'Mark Paid'}
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>

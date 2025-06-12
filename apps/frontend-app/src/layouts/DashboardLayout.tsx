@@ -23,8 +23,8 @@ const DashboardLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.info('Logged out successfully');
     navigate('/login');
   };
@@ -120,7 +120,7 @@ const DashboardLayout = () => {
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => {
                         setIsProfileMenuOpen(false);
-                        // Navigate to profile page when implemented
+                        navigate('/dashboard/profile');
                       }}
                     >
                       <User className="inline-block mr-2 h-4 w-4" />
@@ -130,7 +130,7 @@ const DashboardLayout = () => {
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => {
                         setIsProfileMenuOpen(false);
-                        // Navigate to settings page when implemented
+                        navigate('/dashboard/settings');
                       }}
                     >
                       <Settings className="inline-block mr-2 h-4 w-4" />
@@ -206,7 +206,7 @@ const DashboardLayout = () => {
                   className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   onClick={() => {
                     closeMobileMenu();
-                    // Navigate to profile page when implemented
+                    navigate('/dashboard/profile');
                   }}
                 >
                   Your Profile
@@ -215,7 +215,7 @@ const DashboardLayout = () => {
                   className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   onClick={() => {
                     closeMobileMenu();
-                    // Navigate to settings page when implemented
+                    navigate('/dashboard/settings');
                   }}
                 >
                   Settings

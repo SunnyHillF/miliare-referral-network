@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession } from 'aws-amplify/auth';
+import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
 /* eslint react-refresh/only-export-components: 0 */
 
 type User = {
@@ -18,8 +18,11 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  logout: () => void;
-  register: (userData: Omit<User, 'id' | 'groups'> & { password: string }) => Promise<boolean>;
+  logout: () => Promise<void>;
+  register: (
+    userData: Omit<User, 'id' | 'groups'> & { password: string }
+  ) => Promise<boolean>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,21 +39,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession();
-      
+
       if (currentUser && session.tokens) {
         const groups =
           (session.tokens.idToken?.payload['cognito:groups'] as string[]) || [];
 
-        // Convert Amplify user to our User type
+        const attributes = await fetchUserAttributes();
+
         const userData: User = {
           id: currentUser.userId,
-          firstName: 'User', // Will be populated from user attributes
-          lastName: '', // Will be populated from user attributes
-          email: currentUser.signInDetails?.loginId || '',
-          company: 'WFG', // Default for now, could come from user attributes
+          firstName: attributes.given_name ?? 'User',
+          lastName: attributes.family_name ?? '',
+          email: attributes.email ?? currentUser.signInDetails?.loginId ?? '',
+          company: attributes['custom:partnerId'] ?? 'WFG',
           groups,
-          uplineSMD: undefined, // Could come from user attributes
-          uplineEVC: undefined, // Could come from user attributes
+          uplineSMD: attributes['custom:uplineSMD'] || undefined,
+          uplineEVC: attributes['custom:uplineEVC'] || undefined,
         };
         setUser(userData);
       }
@@ -131,6 +135,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const attributes: Record<string, string> = {};
+      if (updates.firstName !== undefined) {
+        attributes['given_name'] = updates.firstName;
+      }
+      if (updates.lastName !== undefined) {
+        attributes['family_name'] = updates.lastName;
+      }
+      if (updates.company !== undefined) {
+        attributes['custom:partnerId'] = updates.company;
+      }
+      if (updates.email !== undefined) {
+        attributes['email'] = updates.email;
+      }
+      if (updates.uplineSMD !== undefined) {
+        attributes['custom:uplineSMD'] = updates.uplineSMD;
+      }
+      if (updates.uplineEVC !== undefined) {
+        attributes['custom:uplineEVC'] = updates.uplineEVC;
+      }
+      if (Object.keys(attributes).length > 0) {
+        const { updateUserAttributes } = await import('aws-amplify/auth');
+        await updateUserAttributes({ userAttributes: attributes });
+        await checkAuthStatus();
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut();
@@ -149,6 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         register,
+        updateProfile,
       }}
     >
       {children}
