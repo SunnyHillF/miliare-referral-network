@@ -13,6 +13,7 @@ import {
   Bell,
   ChevronDown,
   Settings,
+  Building2,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { toast } from '../components/ui/Toaster';
@@ -52,7 +53,7 @@ const DashboardLayout = () => {
   }
 
   if (user?.groups?.includes('orgLead') || user?.groups?.includes('admin')) {
-    navLinks.push({ to: '/dashboard/organization', icon: <Settings className="h-5 w-5" />, label: 'Organization' });
+    navLinks.push({ to: '/dashboard/organization', icon: <Building2 className="h-5 w-5" />, label: 'Organization' });
   }
 
   if (user?.groups?.includes('companyAdmin') || user?.groups?.includes('admin')) {
