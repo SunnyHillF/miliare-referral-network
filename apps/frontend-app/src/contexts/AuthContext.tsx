@@ -19,7 +19,10 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
-  register: (userData: Omit<User, 'id' | 'groups'> & { password: string }) => Promise<boolean>;
+  register: (
+    userData: Omit<User, 'id' | 'groups'> & { password: string }
+  ) => Promise<boolean>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -131,6 +134,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const attributes: Record<string, string> = {};
+      if (updates.firstName !== undefined) {
+        attributes['given_name'] = updates.firstName;
+      }
+      if (updates.lastName !== undefined) {
+        attributes['family_name'] = updates.lastName;
+      }
+      if (updates.company !== undefined) {
+        attributes['custom:partnerId'] = updates.company;
+      }
+      if (updates.uplineSMD !== undefined) {
+        attributes['custom:uplineSMD'] = updates.uplineSMD;
+      }
+      if (updates.uplineEVC !== undefined) {
+        attributes['custom:uplineEVC'] = updates.uplineEVC;
+      }
+      if (Object.keys(attributes).length > 0) {
+        const { updateUserAttributes } = await import('aws-amplify/auth');
+        await updateUserAttributes({ userAttributes: attributes });
+        await checkAuthStatus();
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut();
@@ -149,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         register,
+        updateProfile,
       }}
     >
       {children}
