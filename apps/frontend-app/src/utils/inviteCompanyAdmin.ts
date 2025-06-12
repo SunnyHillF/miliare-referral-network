@@ -1,4 +1,5 @@
 import { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminAddUserToGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 export async function inviteCompanyAdmin({
   email,
@@ -18,7 +19,16 @@ export async function inviteCompanyAdmin({
     throw new Error('Missing Cognito configuration');
   }
 
-  const client = new CognitoIdentityProviderClient({ region });
+  const { credentials } = await fetchAuthSession();
+
+  const client = new CognitoIdentityProviderClient({
+    region,
+    credentials: {
+      accessKeyId: credentials!.accessKeyId,
+      secretAccessKey: credentials!.secretAccessKey,
+      sessionToken: credentials!.sessionToken,
+    },
+  });
 
   await client.send(
     new AdminCreateUserCommand({
