@@ -11,66 +11,97 @@ import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
 
+// Constants
+const API_CONFIG = {
+  name: 'referralWebhookApi',
+  stage: 'prod',
+  path: {
+    webhook: 'webhook',
+    referrals: 'referrals',
+    referralId: '{referralId}',
+  },
+} as const;
+
+const CORS_CONFIG = {
+  allowOrigins: Cors.ALL_ORIGINS,
+  allowMethods: ['POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
+};
+
 export const backend = defineBackend({
   auth,
   data,
   updateReferralStatusWebhook,
 });
 
-// Create a new API stack for the webhook REST API
-const apiStack = backend.createStack('webhook-api-stack');
+// Create webhook API
+const createWebhookApi = () => {
+  const apiStack = backend.createStack('webhook-api-stack');
+  
+  const api = new RestApi(apiStack, 'WebhookRestApi', {
+    restApiName: API_CONFIG.name,
+    deploy: true,
+    deployOptions: { stageName: API_CONFIG.stage },
+    defaultCorsPreflightOptions: CORS_CONFIG,
+  });
 
-// Define the REST API using API Gateway
-const webhookRestApi = new RestApi(apiStack, 'WebhookRestApi', {
-  restApiName: 'referralWebhookApi',
-  deploy: true,
-  deployOptions: {
-    stageName: 'prod',
-  },
-  defaultCorsPreflightOptions: {
-    allowOrigins: Cors.ALL_ORIGINS,
-    allowMethods: ['POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
-  },
-});
+  return { api, stack: apiStack };
+};
 
-// API key validation handled by the Lambda
-const webhookLambdaIntegration = new LambdaIntegration(
-  backend.updateReferralStatusWebhook.resources.lambda
-);
+// Setup API routes
+const setupApiRoutes = (api: RestApi) => {
+  const lambdaIntegration = new LambdaIntegration(
+    backend.updateReferralStatusWebhook.resources.lambda
+  );
 
-// Create the /webhook/referrals/{referralId} path
-const webhookPath = webhookRestApi.root.addResource('webhook');
-const referralsPath = webhookPath.addResource('referrals');
-const referralIdPath = referralsPath.addResource('{referralId}', {
-  defaultMethodOptions: {
-    authorizationType: AuthorizationType.NONE,
-  },
-});
+  // Create nested resource path: /webhook/referrals/{referralId}
+  const webhookResource = api.root
+    .addResource(API_CONFIG.path.webhook)
+    .addResource(API_CONFIG.path.referrals)
+    .addResource(API_CONFIG.path.referralId, {
+      defaultMethodOptions: {
+        authorizationType: AuthorizationType.NONE,
+      },
+    });
 
-referralIdPath.addMethod('POST', webhookLambdaIntegration);
+  webhookResource.addMethod('POST', lambdaIntegration);
+  
+  return api;
+};
 
-// Grant the function access to query Company and Referral models
-backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
-  new PolicyStatement({
-    effect: Effect.ALLOW,
-    actions: ['appsync:GraphQL'],
-    resources: [
-      `${backend.data.resources.graphqlApi.arn}/types/Company/fields/*`,
-      `${backend.data.resources.graphqlApi.arn}/types/Referral/fields/*`,
-    ],
-  })
-);
+// Configure Lambda permissions
+const configureLambdaPermissions = () => {
+  const graphqlApiArn = backend.data.resources.graphqlApi.arn;
+  
+  backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
+    new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ['appsync:GraphQL'],
+      resources: [
+        `${graphqlApiArn}/types/Company/fields/*`,
+        `${graphqlApiArn}/types/Referral/fields/*`,
+      ],
+    })
+  );
+};
 
-// Output the API endpoint details for reference
-backend.addOutput({
-  custom: {
-    API: {
-      [webhookRestApi.restApiName]: {
-        endpoint: webhookRestApi.url,
-        region: Stack.of(webhookRestApi).region,
-        apiName: webhookRestApi.restApiName,
+// Add outputs
+const addApiOutputs = (api: RestApi) => {
+  backend.addOutput({
+    custom: {
+      API: {
+        [api.restApiName]: {
+          endpoint: api.url,
+          region: Stack.of(api).region,
+          apiName: api.restApiName,
+        },
       },
     },
-  },
-});
+  });
+};
+
+// Main setup
+const { api } = createWebhookApi();
+setupApiRoutes(api);
+configureLambdaPermissions();
+addApiOutputs(api);

@@ -6,14 +6,22 @@ export const schema = a.schema({
   // Company model
   Company: a.model({
     id: a.id(),
-    name: a.string().required(),
+    companyName: a.string().required(),
     contactEmail: a.string().required(),
     website: a.string().required(),
     status: a.string().required(),
     description: a.string(),
-    compensation: a.json(),
+    compensation: a.customType({
+      agentPercentage: a.float(),
+      teamLeadPercentage: a.float(),
+      orgLeadPercentage: a.float(),
+      bonusPoolPercentage: a.float(),
+      mrnPercentage: a.float(),
+      contracterPercentage: a.float()
+    }),
     trainingLinks: a.string().array(),
     orgId: a.string(),
+    webhookApiKeyHash: a.string(),
     createdAt: a.string().required(),
     updatedAt: a.string(),
     // Relationships
@@ -54,20 +62,27 @@ export const schema = a.schema({
   // Referral model
   Referral: a.model({
     id: a.id(),
+    companyId: a.string().required(),
     name: a.string().required(),
     email: a.string().required(),
     phoneNumber: a.string(),
     approximateValue: a.float(),
+    userId: a.string().required(),
     status: a.enum(['IN_PROGRESS', 'IN_REVIEW', 'PAID', 'REJECTED']),
     notes: a.string(),
     // Payment information
     paymentId: a.string(),
     amount: a.float(),
+    type: a.enum(['COMMISSION', 'BONUS_POOL', 'UPLINE']),
     paymentType: a.enum(['COMMISSION', 'BONUS_POOL', 'UPLINE']),
     paymentStatus: a.enum(['PENDING', 'PROCESSED', 'FAILED']),
     period: a.string(), // YYYY-MM format
     processedAt: a.string(),
-    bankInfo: a.json(),
+    bankInfo: a.customType({
+      accountNumber: a.string(),
+      routingNumber: a.string(),
+      accountType: a.string()
+    }),
     // Split referral information
     splitUserIds: a.string().array(),
     // Relationships
