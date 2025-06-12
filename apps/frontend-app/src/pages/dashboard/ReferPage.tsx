@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Send,
   CircleDollarSign,
@@ -7,25 +7,44 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { companiesData } from '../../data/companiesData';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../amplify/data/resource';
+import { companyMeta } from '../../data/companyMeta';
 import { toast } from '../../components/ui/Toaster';
 import ReferralFormModal from '../../components/ReferralFormModal';
+
+const client = generateClient<Schema>();
 
 const ReferPage = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeCompany, setActiveCompany] = useState<string | null>(null);
-  
-  // Derive categories from companies data
+  const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await client.models.Company.list();
+        setCompanies(data);
+      } catch (err) {
+        console.error('Failed to load companies', err);
+      }
+    };
+    fetchCompanies();
+  }, []);
+
   const categories = Array.from(
-    new Set(companiesData.flatMap(company => company.tags))
+    new Set(
+      companies.map((c) => companyMeta[c.id]?.tags || []).flat()
+    )
   );
 
-  // Filter companies based on search and category
-  const filteredCompanies = companiesData.filter(company => {
-    const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase()) ||
-                         company.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? company.tags.includes(selectedCategory) : true;
+  const filteredCompanies = companies.filter((company) => {
+    const meta = companyMeta[company.id] || { tags: [] };
+    const matchesSearch =
+      company.name.toLowerCase().includes(search.toLowerCase()) ||
+      (company.description || '').toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory ? meta.tags.includes(selectedCategory) : true;
     return matchesSearch && matchesCategory;
   });
   
@@ -76,40 +95,42 @@ const ReferPage = () => {
       
       {/* Companies grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCompanies.map((company) => (
+        {filteredCompanies.map((company) => {
+          const meta = companyMeta[company.id] || {};
+          return (
           <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: company.bgColor || '#f3f4f6' }}
-                  >
-                    {company.icon}
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: meta.bgColor || '#f3f4f6' }}
+                    >
+                      {meta.icon}
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      {(meta.tags || []).join(' • ')}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {company.tags.join(' • ')}
-                  </p>
-                </div>
-              </div>
               
               <p className="mt-4 text-sm text-gray-500 line-clamp-3">
                 {company.description}
               </p>
-              
-              {company.commissionInfo && (
+
+              {meta.commissionInfo && (
                 <div className="mt-4 bg-gray-50 rounded-md p-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
                       <BadgePercent className="h-5 w-5 text-primary mr-1" />
-                      <span className="text-sm text-gray-700">{company.commissionInfo.rate}</span>
+                      <span className="text-sm text-gray-700">{meta.commissionInfo.rate}</span>
                     </div>
                     <div className="flex items-center">
                       <CircleDollarSign className="h-5 w-5 text-success mr-1" />
-                      <span className="text-sm text-gray-700">{company.commissionInfo.average}</span>
+                      <span className="text-sm text-gray-700">{meta.commissionInfo.average}</span>
                     </div>
                   </div>
                 </div>
@@ -140,7 +161,8 @@ const ReferPage = () => {
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
       
       {filteredCompanies.length === 0 && (

@@ -1,10 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, BookOpen, Video, FileText, Bookmark } from 'lucide-react';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../amplify/data/resource';
 import { Button } from '../../components/ui/Button';
-import { companiesData } from '../../data/companiesData';
+import { companyMeta } from '../../data/companyMeta';
+
+const client = generateClient<Schema>();
 
 const LearnPage = () => {
+  const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await client.models.Company.list();
+        setCompanies(data);
+      } catch (err) {
+        console.error('Failed to load companies', err);
+      }
+    };
+    fetchCompanies();
+  }, []);
+
   return (
     <div className="space-y-8">
       <div>
@@ -38,53 +56,55 @@ const LearnPage = () => {
       
       {/* Company grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {companiesData.map((company) => (
-          <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        {companies.map((company) => {
+          const meta = companyMeta[company.id] || {};
+          return (
+            <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
               <div className="flex justify-between items-start">
                 <div className="flex-shrink-0">
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: company.bgColor || '#f3f4f6' }}
+                    style={{ backgroundColor: meta.bgColor || '#f3f4f6' }}
                   >
-                    {company.icon}
+                    {meta.icon}
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" className="text-gray-500" title="Save for later">
                   <Bookmark className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <h3 className="mt-4 text-lg font-medium text-gray-900">{company.name}</h3>
               <p className="mt-2 text-sm text-gray-500 line-clamp-3">
                 {company.description}
               </p>
-              
+
               <div className="mt-4 flex flex-wrap gap-2">
-                {company.tags.map((tag, index) => (
-                  <span 
-                    key={index} 
+                {(meta.tags || []).map((tag, index) => (
+                  <span
+                    key={index}
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
-              
+
               <div className="mt-6 flex justify-between items-center">
                 <div className="flex space-x-2">
-                  {company.hasTraining && (
+                  {meta.hasTraining && (
                     <span title="Training available" className="text-primary">
                       <Video className="h-5 w-5" />
                     </span>
                   )}
-                  {company.hasDocumentation && (
+                  {meta.hasDocumentation && (
                     <span title="Documentation available" className="text-primary">
                       <FileText className="h-5 w-5" />
                     </span>
                   )}
                 </div>
-                
+
                 <Link
                   to={`/dashboard/companies/${company.id}`}
                   className="text-sm font-medium text-primary hover:text-primary/80 flex items-center"
@@ -94,8 +114,9 @@ const LearnPage = () => {
                 </Link>
               </div>
             </div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
       
       {/* Quick resources */}

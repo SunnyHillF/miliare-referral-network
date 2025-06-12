@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -12,56 +12,91 @@ import {
   Link2
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { companiesData } from '../../data/companiesData';
 import { toast } from '../../components/ui/Toaster';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
-import { companyAggregateStats } from '../../data/companyAggregateStats';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../amplify/data/resource';
+import { companyMeta } from '../../data/companyMeta';
+
+const client = generateClient<Schema>();
 
 const CompanyDetailPage = () => {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
 
-  const company = useMemo(() => {
-    return companiesData.find(p => p.id === companyId);
+  const [company, setCompany] = useState<Schema['Company']['type'] | null>(null);
+  const [stats, setStats] = useState<StatItem[]>([]);
+
+  useEffect(() => {
+    const loadCompany = async () => {
+      if (!companyId) return;
+      try {
+        const { data } = await client.models.Company.get({ id: companyId });
+        setCompany(data);
+      } catch (err) {
+        console.error('Failed to load company', err);
+        navigate('/dashboard/learn');
+      }
+    };
+    loadCompany();
+  }, [companyId, navigate]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!companyId) return;
+      try {
+        const { data } = await client.models.Referral.list({
+          filter: { companyId: { eq: companyId } },
+        });
+
+        const totalEarnings = data.reduce((s, r) => s + (r.amount ?? 0), 0);
+        const pendingCommissions = data
+          .filter((r) => r.paymentStatus === 'PENDING')
+          .reduce((s, r) => s + (r.amount ?? 0), 0);
+        const referralsCount = data.length;
+        const successfulReferrals = data.filter(
+          (r) => r.paymentStatus === 'PROCESSED'
+        ).length;
+
+        const computed: StatItem[] = [
+          {
+            label: 'Total Earnings',
+            value: `$${totalEarnings.toLocaleString()}`,
+            icon: 'DollarSign',
+            bgColor: 'bg-blue-100',
+            iconColor: 'text-primary',
+          },
+          {
+            label: 'Pending Commissions',
+            value: `$${pendingCommissions.toLocaleString()}`,
+            icon: 'Clock',
+            bgColor: 'bg-green-100',
+            iconColor: 'text-success',
+          },
+          {
+            label: 'Total Referrals',
+            value: referralsCount.toString(),
+            icon: 'Users',
+            bgColor: 'bg-purple-100',
+            iconColor: 'text-purple-600',
+          },
+          {
+            label: 'Success Rate',
+            value: referralsCount
+              ? `${Math.round((successfulReferrals / referralsCount) * 100)}%`
+              : '0%',
+            icon: 'TrendingUp',
+            bgColor: 'bg-orange-100',
+            iconColor: 'text-orange-600',
+          },
+        ];
+        setStats(computed);
+      } catch (err) {
+        console.error('Failed to load stats', err);
+      }
+    };
+    loadStats();
   }, [companyId]);
-
-  const aggregate = companyAggregateStats[companyId || ''];
-
-  const stats: StatItem[] = useMemo(() => {
-    if (!aggregate) return [];
-    return [
-      {
-        label: 'Total Earnings',
-        value: `$${aggregate.totalEarnings.toLocaleString()}`,
-        icon: 'DollarSign',
-        bgColor: 'bg-blue-100',
-        iconColor: 'text-primary',
-      },
-      {
-        label: 'Pending Commissions',
-        value: `$${aggregate.pendingCommissions.toLocaleString()}`,
-        icon: 'Clock',
-        bgColor: 'bg-green-100',
-        iconColor: 'text-success',
-      },
-      {
-        label: 'Total Referrals',
-        value: aggregate.referralsCount.toString(),
-        icon: 'Users',
-        bgColor: 'bg-purple-100',
-        iconColor: 'text-purple-600',
-      },
-      {
-        label: 'Success Rate',
-        value: `${Math.round(
-          (aggregate.successfulReferrals / aggregate.referralsCount) * 100
-        )}%`,
-        icon: 'TrendingUp',
-        bgColor: 'bg-orange-100',
-        iconColor: 'text-orange-600',
-      },
-    ];
-  }, [aggregate]);
 
   if (!company) {
     navigate('/dashboard/learn');
@@ -104,7 +139,7 @@ const CompanyDetailPage = () => {
   const faqItems = [
     {
       question: 'What services does this company provide?',
-      answer: `${company.name} provides ${company.tags.join(', ')} services. ${company.description}`
+      answer: `${company?.name ?? ''} provides ${(companyMeta[companyId || '']?.tags || []).join(', ')} services. ${company?.description ?? ''}`
     },
     {
       question: 'How are commissions calculated?',
@@ -135,9 +170,9 @@ const CompanyDetailPage = () => {
         </Button>
         
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{company?.name}</h1>
           <p className="text-sm text-gray-500">
-            {company.tags.join(' • ')}
+            {(companyMeta[companyId || '']?.tags || []).join(' • ')}
           </p>
         </div>
       </div>
@@ -148,24 +183,25 @@ const CompanyDetailPage = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="md:flex">
           <div className="md:flex-shrink-0 flex items-center justify-center p-8 bg-gray-50 md:w-64">
-            <div 
+            <div
               className="w-24 h-24 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: company.bgColor || '#f3f4f6' }}
+              style={{ backgroundColor: companyMeta[companyId || '']?.bgColor || '#f3f4f6' }}
             >
-              {React.cloneElement(company.icon as React.ReactElement, { size: 48 })}
+              {companyMeta[companyId || '']?.icon &&
+                React.cloneElement(companyMeta[companyId || ''].icon as React.ReactElement, { size: 48 })}
             </div>
           </div>
           
           <div className="p-8 flex-1">
-            <h2 className="text-xl font-semibold text-gray-900">About {company.name}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">About {company?.name}</h2>
             <p className="mt-4 text-gray-600">
-              {company.fullDescription || company.description}
+              {company?.description}
             </p>
-            
+
             <div className="mt-6 flex flex-wrap gap-2">
-              {company.tags.map((tag, index) => (
-                <span 
-                  key={index} 
+              {(companyMeta[companyId || '']?.tags || []).map((tag, index) => (
+                <span
+                  key={index}
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
                 >
                   {tag}
@@ -175,7 +211,7 @@ const CompanyDetailPage = () => {
             
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <a 
-                href={company.websiteUrl || '#'} 
+                href={company?.website || '#'}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block"
@@ -186,9 +222,9 @@ const CompanyDetailPage = () => {
                 </Button>
               </a>
               
-              <a 
-                href={company.referralUrl} 
-                target="_blank" 
+              <a
+                href={companyMeta[companyId || '']?.referralUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"
               >
@@ -213,7 +249,7 @@ const CompanyDetailPage = () => {
               <h3 className="text-lg font-medium">Commission Rate</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {company.commissionInfo?.rate || '15-20%'}
+              {companyMeta[companyId || '']?.commissionInfo?.rate || '15-20%'}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Of the service value
@@ -226,7 +262,7 @@ const CompanyDetailPage = () => {
               <h3 className="text-lg font-medium">Average Payout</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {company.commissionInfo?.average || '$500-$1,200'}
+              {companyMeta[companyId || '']?.commissionInfo?.average || '$500-$1,200'}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Per successful referral
@@ -250,7 +286,7 @@ const CompanyDetailPage = () => {
             variant="outline"
             className="flex items-center"
             onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/r/${company.id}`);
+              navigator.clipboard.writeText(`${window.location.origin}/r/${companyId}`);
               toast.success("Referral link copied!", "You can now share this with your clients.");
             }}
           >
@@ -322,12 +358,12 @@ const CompanyDetailPage = () => {
           <div className="text-center md:text-left">
             <h2 className="text-xl font-bold text-white">Ready to start referring?</h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Start earning commissions by referring clients to {company.name}.
+              Start earning commissions by referring clients to {company?.name}.
             </p>
           </div>
           <div className="mt-6 md:mt-0">
             <a 
-              href={company.referralUrl} 
+              href={companyMeta[companyId || '']?.referralUrl}
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block"
