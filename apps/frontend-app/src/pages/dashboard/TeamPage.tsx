@@ -151,7 +151,7 @@ const TeamPage = () => {
           <div className="text-center md:text-left">
             <h2 className="text-xl font-bold text-white">Ready to increase your earnings?</h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Refer clients to our strategic partners and earn commissions.
+              Refer clients to our strategic companies and earn commissions.
             </p>
           </div>
           <div className="mt-6 md:mt-0">

@@ -1,11 +1,11 @@
-export type PartnerAggregateStats = {
+export type CompanyAggregateStats = {
   totalEarnings: number;
   pendingCommissions: number;
   referralsCount: number;
   successfulReferrals: number;
 };
 
-export const partnerAggregateStats: Record<string, PartnerAggregateStats> = {
+export const companyAggregateStats: Record<string, CompanyAggregateStats> = {
   'sunny-hill': {
     totalEarnings: 125000,
     pendingCommissions: 6200,

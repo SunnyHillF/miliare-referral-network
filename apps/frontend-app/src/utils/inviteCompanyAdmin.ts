@@ -1,15 +1,15 @@
 import { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminAddUserToGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
 
-export async function invitePartnerAdmin({
+export async function inviteCompanyAdmin({
   email,
   firstName,
   lastName,
-  partnerId,
+  companyId,
 }: {
   email: string;
   firstName: string;
   lastName: string;
-  partnerId: string;
+  companyId: string;
 }) {
   const region = import.meta.env.VITE_AWS_REGION;
   const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
@@ -29,7 +29,7 @@ export async function invitePartnerAdmin({
         { Name: 'email_verified', Value: 'true' },
         { Name: 'given_name', Value: firstName },
         { Name: 'family_name', Value: lastName },
-        { Name: 'custom:partnerId', Value: partnerId },
+        { Name: 'custom:companyId', Value: companyId },
       ],
     })
   );
@@ -38,7 +38,7 @@ export async function invitePartnerAdmin({
     new AdminAddUserToGroupCommand({
       UserPoolId: userPoolId,
       Username: email,
-      GroupName: 'partnerAdmin',
+      GroupName: 'companyAdmin',
     })
   );
 }

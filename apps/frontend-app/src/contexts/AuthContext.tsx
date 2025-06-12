@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstName: attributes.given_name ?? 'User',
           lastName: attributes.family_name ?? '',
           email: attributes.email ?? currentUser.signInDetails?.loginId ?? '',
-          company: attributes['custom:partnerId'] ?? 'WFG',
+          company: attributes['custom:companyId'] ?? 'WFG',
           groups,
           uplineSMD: attributes['custom:uplineSMD'] || undefined,
           uplineEVC: attributes['custom:uplineEVC'] || undefined,
@@ -111,8 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userData.email,
             given_name: userData.firstName,
             family_name: userData.lastName,
-            // Map the selected company to the PartnerId custom attribute in Cognito
-            'custom:partnerId': userData.company,
+            // Map the selected company to the CompanyId custom attribute in Cognito
+            'custom:companyId': userData.company,
             'custom:uplineSMD': userData.uplineSMD || '',
             'custom:uplineEVC': userData.uplineEVC || '',
           },
@@ -147,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         attributes['family_name'] = updates.lastName;
       }
       if (updates.company !== undefined) {
-        attributes['custom:partnerId'] = updates.company;
+        attributes['custom:companyId'] = updates.company;
       }
       if (updates.email !== undefined) {
         attributes['email'] = updates.email;

@@ -40,25 +40,25 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
   });
 
   try {
-    // Find partner by apiKey hash
-    const partners = await client.models.Partner.list({
-      filter: { webhookApiKeyHash: { eq: hash } },
-    });
+  // Find company by apiKey hash
+  const companies = await client.models.Company.list({
+    filter: { webhookApiKeyHash: { eq: hash } },
+  });
 
-    const partner = partners.data[0];
-    if (!partner) {
-      return { statusCode: 403, body: 'Invalid API key' };
-    }
+  const company = companies.data[0];
+  if (!company) {
+    return { statusCode: 403, body: 'Invalid API key' };
+  }
 
     const referralId = event.pathParameters?.referralId;
     if (!referralId) {
       return { statusCode: 400, body: 'Missing referral ID' };
     }
 
-    const referral = await client.models.Referral.get({ id: referralId });
-    if (!referral.data || referral.data.partnerId !== partner.id) {
-      return { statusCode: 404, body: 'Referral not found' };
-    }
+  const referral = await client.models.Referral.get({ id: referralId });
+  if (!referral.data || referral.data.companyId !== company.id) {
+    return { statusCode: 404, body: 'Referral not found' };
+  }
 
     const body = JSON.parse(event.body || '{}');
     const status = body.status as Schema['Referral']['type']['status'];

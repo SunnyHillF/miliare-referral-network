@@ -35,8 +35,8 @@ const schema = a.schema({
       index("teamId").sortKeys(["id"]).queryField("listUsersByTeam"),
     ]),
 
-  // Strategic Partners model
-  Partner: a
+  // Strategic Companies model
+  Company: a
     .model({
       id: a.id(),
       name: a.string().required(),
@@ -54,21 +54,21 @@ const schema = a.schema({
       trainingLinks: a.string().array(),
       webhookApiKeyHash: a.string(),
       webhookUrl: a.string(),
-      referrals: a.hasMany("Referral", "partnerId"),
+      referrals: a.hasMany("Referral", "companyId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
       allow.groups(["admin"]),
-      allow.groups(["partnerAdmin"]).to(["read", "update"]),
+      allow.groups(["companyAdmin"]).to(["read", "update"]),
       allow.groups(["teamLead"]).to(["read"])
     ]),
 
-  // Referrals model - tracks leads sent to partners
+  // Referrals model - tracks leads sent to companies
   Referral: a
     .model({
       id: a.id(),
       userProfileId: a.id().required(), // References UserProfile
-      partnerId: a.id().required(), // References Partner
+      companyId: a.id().required(), // References Company
       leadId: a.string().required(),
       clientName: a.string().required(),
       status: a.enum(["IN_PROGRESS", "IN_REVIEW", "PAID", "REJECTED"]),
@@ -82,12 +82,12 @@ const schema = a.schema({
       bonusPoolAmount: a.integer(),
       mrnAmount: a.integer(),
       contractorAmount: a.integer(),
-      partnerType: a.enum(["DIRECT_PAYMENT", "MRN_PAYMENT"]),
+      companyType: a.enum(["DIRECT_PAYMENT", "MRN_PAYMENT"]),
       paymentStatus: a.enum(["PENDING", "PROCESSED", "FAILED"]),
       notes: a.string(),
       paidAt: a.datetime(),
       userProfile: a.belongsTo("UserProfile", "userProfileId"),
-      partner: a.belongsTo("Partner", "partnerId"),
+      company: a.belongsTo("Company", "companyId"),
       payments: a.hasMany("Payment", "referralId"),
     })
     .authorization((allow) => [

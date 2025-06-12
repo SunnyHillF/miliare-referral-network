@@ -153,7 +153,7 @@ const LoginPage = () => {
                   <Building size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-xl">Strategic Partnerships</h3>
+                  <h3 className="font-semibold text-xl">Strategic Companies</h3>
                   <p className="text-white/80 mt-1">Connect with industry-leading financial service providers</p>
                 </div>
               </div>

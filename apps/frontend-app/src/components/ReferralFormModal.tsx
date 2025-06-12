@@ -18,12 +18,12 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface ReferralFormModalProps {
-  partnerName: string | null;
+  companyName: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOpen, onClose }) => {
+const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ companyName, isOpen, onClose }) => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
@@ -42,7 +42,7 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOp
         return;
       }
       const formData = new URLSearchParams();
-      Object.entries({ ...data, source: partnerName }).forEach(([key, value]) => {
+      Object.entries({ ...data, source: companyName }).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
       await fetch(webhookUrl, {
@@ -59,7 +59,7 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ partnerName, isOp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} title={partnerName ? `Refer to ${partnerName}` : 'Refer Client'}>
+    <Modal isOpen={isOpen} onClose={close} title={companyName ? `Refer to ${companyName}` : 'Refer Client'}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label="Name" {...register('name')} error={errors.name?.message} />
         <Input label="Email" type="email" {...register('email')} error={errors.email?.message} />
