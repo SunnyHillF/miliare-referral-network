@@ -53,10 +53,12 @@ const DashboardLayout = () => {
 
   if (user?.groups?.includes('partnerAdmin') || user?.groups?.includes('admin')) {
     navLinks.push({ to: '/dashboard/company-admin', icon: <Settings className="h-5 w-5" />, label: 'Organization' });
+    navLinks.push({ to: '/dashboard/company-admin-tools', icon: <Settings className="h-5 w-5" />, label: 'Company Admin' });
   }
 
   if (user?.groups?.includes('admin')) {
-    navLinks.push({ to: '/dashboard/admin', icon: <Settings className="h-5 w-5" />, label: 'Site Admin' });
+    navLinks.push({ to: '/dashboard/site-admin', icon: <Settings className="h-5 w-5" />, label: 'Site Admin' });
+    navLinks.push({ to: '/dashboard/admin', icon: <Settings className="h-5 w-5" />, label: 'Admin' });
   }
   
   return (
