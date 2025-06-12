@@ -1,50 +1,56 @@
 # Referrals Table
 
-This document describes the schema for the `Referrals` DynamoDB table.
+This document describes the unified `Referrals` DynamoDB table. Payment records previously stored in `Payments` are now captured here.
 
-## Primary Keys
+## Keys
 
-- **PK**: `REFERRAL#<ReferralId>`
-- **SK**: `METADATA#<ReferralId>`
+- **PK**: `COMPANY#<CompanyId>#REFERRAL#<ReferralId>`
+- **SK**: varies per item type
 
-## Required Attributes
+Multiple items share the same partition key to store metadata, status, and payment details for a single referral.
 
-- `id` _(string)_ - Unique referral identifier
-- `userId` _(string)_ - ID of the user who made the referral
+### Sort Keys
+- `METADATA#<ReferralId>` – Customer and user information
+- `STATUS#<ReferralId>` – Current referral status
+- `PAYMENT#<ReferralId>` – Payment data
+
+## METADATA Item Attributes
+
+- `id` _(string)_ - Generated referral identifier
 - `companyId` _(string)_ - ID of the company receiving the referral
-- `leadId` _(string)_ - Linked lead record
-- `clientName` _(string)_ - Name of the referred client
-- `status` _(string)_ - Referral status (IN_PROGRESS, IN_REVIEW, PAID, REJECTED)
-- `amount` _(number)_ - Total commission amount in USD cents
+- `name` _(string)_ - Referred customer name
+- `email` _(string)_ - Referred customer email
+- `phoneNumber` _(string)_ - Customer phone number
+- `approximateValue` _(number)_ - Estimated value of the referral
+- `userId` _(string)_ - User who submitted the referral
+- `teamLeadId` _(string)_ - Team lead for the submitting user
+- `orgLeadId` _(string)_ - Organization lead for the submitting user
+- `splitUserIds` _(list)_ - Additional users to split the referral with
 - `createdAt` _(string)_ - ISO timestamp of creation
 
-## Optional Attributes
+## STATUS Item Attributes
 
-- `uplineEVC` _(string)_ - ID of the upline EVC (required for WFG)
-- `uplineSMD` _(string)_ - ID of the upline SMD (required for WFG)
-- `compensation` _(map)_ - Commission distribution:
-  - `agentAmount` _(number)_ - Amount for referring agent (15-25% based on company)
-  - `teamLeadAmount` _(number)_ - Amount for team lead (2%)
-  - `orgLeadAmount` _(number)_ - Amount for organization lead (1%)
-  - `bonusPoolAmount` _(number)_ - Amount for bonus pool (2%)
-  - `mrnAmount` _(number)_ - Amount retained by MRN (5%)
-  - `contractorAmount` _(number)_ - Amount for contractors (if applicable)
-- `companyType` _(string)_ - Type of company (DIRECT_PAYMENT, MRN_PAYMENT)
+- `status` _(string)_ - Referral status (IN_PROGRESS, IN_REVIEW, PAID, REJECTED)
+- `updatedAt` _(string)_ - ISO timestamp of last status change
+- `notes` _(string)_ - Additional notes
+
+## PAYMENT Item Attributes
+
+- `paymentId` _(string)_ - Unique payment identifier
+- `amount` _(number)_ - Payment amount in USD cents
+- `type` _(string)_ - Payment type (COMMISSION, BONUS_POOL, UPLINE)
 - `paymentStatus` _(string)_ - Payment status (PENDING, PROCESSED, FAILED)
-- `notes` _(string)_ - Additional referral information
+- `period` _(string)_ - Payment period (YYYY-MM)
+- `processedAt` _(string)_ - ISO timestamp when payment was processed
+- `bankInfo` _(map)_ - Bank account information:
+  - `accountNumber` _(string)_ - Last 4 digits of account
+  - `routingNumber` _(string)_ - Last 4 digits of routing
+  - `accountType` _(string)_ - Type of bank account
 - `updatedAt` _(string)_ - ISO timestamp of last update
-- `paidAt` _(string)_ - ISO timestamp when commission was paid
 
 ## Notes
 
-- Each record associates a company with a lead referral and tracks the referral lifecycle.
-- All timestamps should be in ISO 8601 format.
+- A unique `ReferralId` is generated for each referral.
+- All timestamps use ISO 8601 format.
 - Amounts are stored in cents to avoid floating-point precision issues.
-- The table supports querying referrals by user, company, and status.
-- Commission distribution varies by company:
-  - Sunny Hill Financial: 25% total (15% agent, 2% team lead, 1% org lead, 2% bonus, 5% MRN)
-  - Prime Corporate Services: 30% total (20% agent, 2% team lead, 1% org lead, 2% bonus, 5% MRN)
-  - ANCO: 30% total (20% agent, 2% team lead, 1% org lead, 2% bonus, 2.5% contractor, 2.5% MRN)
-  - Summit Business: 40% total (25% agent, 2% team lead, 1% org lead, 2% bonus, 5% contractor, 5% MRN)
-- Some companies (Weightless Financial, Wellness for the Workforce) handle payments directly
-- Upline fields are only required for WFG affiliates
+- Consolidating payment data into this table simplifies querying by company or user.
