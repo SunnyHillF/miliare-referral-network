@@ -18,7 +18,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (
     userData: Omit<User, 'id' | 'groups'> & { password: string }
   ) => Promise<boolean>;
