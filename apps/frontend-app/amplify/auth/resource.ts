@@ -37,6 +37,10 @@ export const auth = defineAuth({
       mutable: true,
     },
     // Custom attributes for Miliare business domain
+    'custom:company': {
+      dataType: 'String',
+      mutable: true,
+    },
     'custom:companyId': {
       dataType: 'String',
       mutable: true,
@@ -47,6 +51,10 @@ export const auth = defineAuth({
     },
     'custom:orgLeadId': {
       dataType: 'String',
+      mutable: true,
+    },
+    'custom:activated': {
+      dataType: 'Boolean',
       mutable: true,
     },
   },
