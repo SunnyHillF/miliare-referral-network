@@ -9,7 +9,7 @@ import {
   Users
 } from 'lucide-react';
 
-export type Partner = {
+export type Company = {
   id: string;
   name: string;
   description: string;
@@ -27,7 +27,7 @@ export type Partner = {
   };
 };
 
-export const partnersData: Partner[] = [
+export const companiesData: Company[] = [
   {
     id: 'sunny-hill',
     name: 'Sunny Hill Financial',

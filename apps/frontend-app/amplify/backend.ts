@@ -50,13 +50,13 @@ const referralIdPath = referralsPath.addResource('{referralId}', {
 
 referralIdPath.addMethod('POST', webhookLambdaIntegration);
 
-// Grant the function access to query Partner and Referral models
+// Grant the function access to query Company and Referral models
 backend.updateReferralStatusWebhook.resources.lambda.addToRolePolicy(
   new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['appsync:GraphQL'],
     resources: [
-      `${backend.data.resources.graphqlApi.arn}/types/Partner/fields/*`,
+      `${backend.data.resources.graphqlApi.arn}/types/Company/fields/*`,
       `${backend.data.resources.graphqlApi.arn}/types/Referral/fields/*`,
     ],
   })

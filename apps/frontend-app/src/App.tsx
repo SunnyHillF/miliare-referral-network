@@ -6,7 +6,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import BusinessPage from './pages/dashboard/BusinessPage';
 import LearnPage from './pages/dashboard/LearnPage';
 import ReferPage from './pages/dashboard/ReferPage';
-import PartnerDetailPage from './pages/dashboard/PartnerDetailPage';
+import CompanyDetailPage from './pages/dashboard/CompanyDetailPage';
 import TeamPage from './pages/dashboard/TeamPage';
 import AdminPage from './pages/dashboard/AdminPage';
 import OrganizationPage from './pages/dashboard/OrganizationPage';
@@ -74,12 +74,12 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="company-admin" element={
-            <ProtectedRoute requiredGroups={["partnerAdmin"]}>
+            <ProtectedRoute requiredGroups={["companyAdmin"]}>
               <OrganizationPage />
             </ProtectedRoute>
           } />
           <Route path="company-admin-tools" element={
-            <ProtectedRoute requiredGroups={["partnerAdmin"]}>
+            <ProtectedRoute requiredGroups={["companyAdmin"]}>
               <CompanyAdminPage />
             </ProtectedRoute>
           } />
@@ -93,7 +93,7 @@ function App() {
               <AdminPage />
             </ProtectedRoute>
           } />
-          <Route path="partners/:partnerId" element={<PartnerDetailPage />} />
+          <Route path="partners/:companyId" element={<CompanyDetailPage />} />
         </Route>
         
         {/* Redirect root to login */}

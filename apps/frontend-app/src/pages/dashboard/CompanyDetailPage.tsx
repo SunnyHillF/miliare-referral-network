@@ -12,20 +12,20 @@ import {
   Link2
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { partnersData } from '../../data/partnersData';
+import { companiesData } from '../../data/companiesData';
 import { toast } from '../../components/ui/Toaster';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
-import { partnerAggregateStats } from '../../data/partnerAggregateStats';
+import { companyAggregateStats } from '../../data/companyAggregateStats';
 
-const PartnerDetailPage = () => {
-  const { partnerId } = useParams<{ partnerId: string }>();
+const CompanyDetailPage = () => {
+  const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
-  
-  const partner = useMemo(() => {
-    return partnersData.find(p => p.id === partnerId);
-  }, [partnerId]);
 
-  const aggregate = partnerAggregateStats[partnerId || ''];
+  const company = useMemo(() => {
+    return companiesData.find(p => p.id === companyId);
+  }, [companyId]);
+
+  const aggregate = companyAggregateStats[companyId || ''];
 
   const stats: StatItem[] = useMemo(() => {
     if (!aggregate) return [];
@@ -63,7 +63,7 @@ const PartnerDetailPage = () => {
     ];
   }, [aggregate]);
 
-  if (!partner) {
+  if (!company) {
     navigate('/dashboard/learn');
     return null;
   }
@@ -103,8 +103,8 @@ const PartnerDetailPage = () => {
   // Mock FAQ items
   const faqItems = [
     {
-      question: 'What services does this partner provide?',
-      answer: `${partner.name} provides ${partner.tags.join(', ')} services. ${partner.description}`
+      question: 'What services does this company provide?',
+      answer: `${company.name} provides ${company.tags.join(', ')} services. ${company.description}`
     },
     {
       question: 'How are commissions calculated?',
@@ -135,35 +135,35 @@ const PartnerDetailPage = () => {
         </Button>
         
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
           <p className="text-sm text-gray-500">
-            {partner.tags.join(' • ')}
+            {company.tags.join(' • ')}
           </p>
         </div>
       </div>
 
       {stats.length > 0 && <StatsOverview stats={stats} />}
 
-      {/* Partner overview */}
+      {/* Company overview */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="md:flex">
           <div className="md:flex-shrink-0 flex items-center justify-center p-8 bg-gray-50 md:w-64">
             <div 
               className="w-24 h-24 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: partner.bgColor || '#f3f4f6' }}
+              style={{ backgroundColor: company.bgColor || '#f3f4f6' }}
             >
-              {React.cloneElement(partner.icon as React.ReactElement, { size: 48 })}
+              {React.cloneElement(company.icon as React.ReactElement, { size: 48 })}
             </div>
           </div>
           
           <div className="p-8 flex-1">
-            <h2 className="text-xl font-semibold text-gray-900">About {partner.name}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">About {company.name}</h2>
             <p className="mt-4 text-gray-600">
-              {partner.fullDescription || partner.description}
+              {company.fullDescription || company.description}
             </p>
             
             <div className="mt-6 flex flex-wrap gap-2">
-              {partner.tags.map((tag, index) => (
+              {company.tags.map((tag, index) => (
                 <span 
                   key={index} 
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
@@ -175,7 +175,7 @@ const PartnerDetailPage = () => {
             
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <a 
-                href={partner.websiteUrl || '#'} 
+                href={company.websiteUrl || '#'} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block"
@@ -187,7 +187,7 @@ const PartnerDetailPage = () => {
               </a>
               
               <a 
-                href={partner.referralUrl} 
+                href={company.referralUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block"
@@ -213,7 +213,7 @@ const PartnerDetailPage = () => {
               <h3 className="text-lg font-medium">Commission Rate</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {partner.commissionInfo?.rate || '15-20%'}
+              {company.commissionInfo?.rate || '15-20%'}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Of the service value
@@ -226,7 +226,7 @@ const PartnerDetailPage = () => {
               <h3 className="text-lg font-medium">Average Payout</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {partner.commissionInfo?.average || '$500-$1,200'}
+              {company.commissionInfo?.average || '$500-$1,200'}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Per successful referral
@@ -250,7 +250,7 @@ const PartnerDetailPage = () => {
             variant="outline"
             className="flex items-center"
             onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/r/${partner.id}`);
+              navigator.clipboard.writeText(`${window.location.origin}/r/${company.id}`);
               toast.success("Referral link copied!", "You can now share this with your clients.");
             }}
           >
@@ -322,12 +322,12 @@ const PartnerDetailPage = () => {
           <div className="text-center md:text-left">
             <h2 className="text-xl font-bold text-white">Ready to start referring?</h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Start earning commissions by referring clients to {partner.name}.
+              Start earning commissions by referring clients to {company.name}.
             </p>
           </div>
           <div className="mt-6 md:mt-0">
             <a 
-              href={partner.referralUrl} 
+              href={company.referralUrl} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block"
@@ -343,4 +343,4 @@ const PartnerDetailPage = () => {
   );
 };
 
-export default PartnerDetailPage;
+export default CompanyDetailPage;

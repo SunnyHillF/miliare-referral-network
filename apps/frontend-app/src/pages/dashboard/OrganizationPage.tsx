@@ -95,14 +95,14 @@ const OrganizationPage = () => {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Organization Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage partner companies and referral settings.</p>
+        <p className="mt-1 text-sm text-gray-500">Manage companies and referral settings.</p>
       </div>
 
       <StatsOverview stats={stats} />
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Partner Earnings Overview</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Company Earnings Overview</h2>
           <div>
             <select
               className="py-1 px-3 border border-gray-300 rounded-md text-sm"
@@ -136,7 +136,7 @@ const OrganizationPage = () => {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 space-y-4">
         <p className="text-gray-700">
-          This page is accessible to Partner Admins and Site Admins. Manage company settings, partner configurations, and referral workflows here.
+          This page is accessible to Company Admins and Site Admins. Manage company settings, company configurations, and referral workflows here.
         </p>
         <div>
           <p className="text-sm text-gray-500">Webhook Endpoint:</p>

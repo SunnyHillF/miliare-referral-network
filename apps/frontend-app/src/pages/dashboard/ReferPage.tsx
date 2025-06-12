@@ -7,25 +7,25 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { partnersData } from '../../data/partnersData';
+import { companiesData } from '../../data/companiesData';
 import { toast } from '../../components/ui/Toaster';
 import ReferralFormModal from '../../components/ReferralFormModal';
 
 const ReferPage = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [activePartner, setActivePartner] = useState<string | null>(null);
+  const [activeCompany, setActiveCompany] = useState<string | null>(null);
   
-  // Derive categories from partners data
+  // Derive categories from companies data
   const categories = Array.from(
-    new Set(partnersData.flatMap(partner => partner.tags))
+    new Set(companiesData.flatMap(company => company.tags))
   );
-  
-  // Filter partners based on search and category
-  const filteredPartners = partnersData.filter(partner => {
-    const matchesSearch = partner.name.toLowerCase().includes(search.toLowerCase()) || 
-                         partner.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? partner.tags.includes(selectedCategory) : true;
+
+  // Filter companies based on search and category
+  const filteredCompanies = companiesData.filter(company => {
+    const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase()) ||
+                         company.description.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory ? company.tags.includes(selectedCategory) : true;
     return matchesSearch && matchesCategory;
   });
   
@@ -34,7 +34,7 @@ const ReferPage = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Refer Clients</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Connect your clients with our strategic partners and earn commissions
+          Connect your clients with our strategic companies and earn commissions
         </p>
       </div>
       
@@ -44,7 +44,7 @@ const ReferPage = () => {
           <div className="md:w-1/3">
             <Input
               type="search"
-              placeholder="Search partners..."
+              placeholder="Search companies..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full"
@@ -74,42 +74,42 @@ const ReferPage = () => {
         </div>
       </div>
       
-      {/* Partners grid */}
+      {/* Companies grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPartners.map((partner) => (
-          <div key={partner.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        {filteredCompanies.map((company) => (
+          <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div 
                     className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: partner.bgColor || '#f3f4f6' }}
+                    style={{ backgroundColor: company.bgColor || '#f3f4f6' }}
                   >
-                    {partner.icon}
+                    {company.icon}
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">{partner.name}</h3>
+                  <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
                   <p className="text-sm text-gray-500">
-                    {partner.tags.join(' • ')}
+                    {company.tags.join(' • ')}
                   </p>
                 </div>
               </div>
               
               <p className="mt-4 text-sm text-gray-500 line-clamp-3">
-                {partner.description}
+                {company.description}
               </p>
               
-              {partner.commissionInfo && (
+              {company.commissionInfo && (
                 <div className="mt-4 bg-gray-50 rounded-md p-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
                       <BadgePercent className="h-5 w-5 text-primary mr-1" />
-                      <span className="text-sm text-gray-700">{partner.commissionInfo.rate}</span>
+                      <span className="text-sm text-gray-700">{company.commissionInfo.rate}</span>
                     </div>
                     <div className="flex items-center">
                       <CircleDollarSign className="h-5 w-5 text-success mr-1" />
-                      <span className="text-sm text-gray-700">{partner.commissionInfo.average}</span>
+                      <span className="text-sm text-gray-700">{company.commissionInfo.average}</span>
                     </div>
                   </div>
                 </div>
@@ -121,7 +121,7 @@ const ReferPage = () => {
                   size="sm"
                   className="flex items-center justify-center"
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/r/${partner.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/r/${company.id}`);
                     toast.success("Referral link copied!", "You can now share this with your clients.");
                   }}
                 >
@@ -132,7 +132,7 @@ const ReferPage = () => {
                 <Button
                   className="w-full flex items-center justify-center"
                   size="sm"
-                  onClick={() => setActivePartner(partner.name)}
+                  onClick={() => setActiveCompany(company.name)}
                 >
                   <Send className="mr-1 h-4 w-4" />
                   Refer Now
@@ -143,9 +143,9 @@ const ReferPage = () => {
         ))}
       </div>
       
-      {filteredPartners.length === 0 && (
+      {filteredCompanies.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
-          <p className="text-gray-500">No partners found matching your criteria.</p>
+          <p className="text-gray-500">No companies found matching your criteria.</p>
           <Button 
             variant="outline" 
             className="mt-4"
@@ -192,9 +192,9 @@ const ReferPage = () => {
         </div>
       </div>
       <ReferralFormModal
-        partnerName={activePartner}
-        isOpen={Boolean(activePartner)}
-        onClose={() => setActivePartner(null)}
+        companyName={activeCompany}
+        isOpen={Boolean(activeCompany)}
+        onClose={() => setActiveCompany(null)}
       />
     </div>
   );

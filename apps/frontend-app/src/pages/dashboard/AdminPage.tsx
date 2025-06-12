@@ -7,12 +7,12 @@ import type { Schema } from '../../amplify/data/resource';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../components/ui/Toaster';
-import { invitePartnerAdmin } from '../../utils/invitePartnerAdmin';
+import { inviteCompanyAdmin } from '../../utils/inviteCompanyAdmin';
 
 const client = generateClient<Schema>();
 
-const partnerSchema = z.object({
-  name: z.string().min(1, 'Partner name is required'),
+const companySchema = z.object({
+  name: z.string().min(1, 'Company name is required'),
   contactEmail: z.string().email('Valid email required'),
   website: z.string().url('Valid URL required'),
   adminFirstName: z.string().min(1, 'First name required'),
@@ -20,50 +20,50 @@ const partnerSchema = z.object({
   adminEmail: z.string().email('Valid email required'),
 });
 
-type PartnerFormValues = z.infer<typeof partnerSchema>;
+type CompanyFormValues = z.infer<typeof companySchema>;
 
 const AdminPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [partners, setPartners] = useState<Schema['Partner']['type'][]>([]);
-  const { register, handleSubmit, formState: { errors } } = useForm<PartnerFormValues>({
-    resolver: zodResolver(partnerSchema),
+  const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
+  const { register, handleSubmit, formState: { errors } } = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
   });
 
   useEffect(() => {
-    const fetchPartners = async () => {
+    const fetchCompanies = async () => {
       try {
-        const { data } = await client.models.Partner.list();
-        setPartners(data);
+        const { data } = await client.models.Company.list();
+        setCompanies(data);
       } catch (error) {
-        console.error('Failed to load partners', error);
+        console.error('Failed to load companies', error);
       }
     };
-    fetchPartners();
+    fetchCompanies();
   }, []);
 
-  const onSubmit = async (data: PartnerFormValues) => {
+  const onSubmit = async (data: CompanyFormValues) => {
     setIsSubmitting(true);
     try {
-      const { data: partner } = await client.models.Partner.create({
+      const { data: company } = await client.models.Company.create({
         name: data.name,
         contactEmail: data.contactEmail,
         website: data.website,
         status: 'ACTIVE',
       });
 
-      setPartners((prev) => [...prev, partner]);
+      setCompanies((prev) => [...prev, company]);
 
-      await invitePartnerAdmin({
+      await inviteCompanyAdmin({
         email: data.adminEmail,
         firstName: data.adminFirstName,
         lastName: data.adminLastName,
-        partnerId: partner.id,
+        companyId: company.id,
       });
 
-      toast.success('Partner created', 'Invitation sent to partner admin');
+      toast.success('Company created', 'Invitation sent to company admin');
     } catch (err) {
       console.error(err);
-      toast.error('Failed to create partner');
+      toast.error('Failed to create company');
     } finally {
       setIsSubmitting(false);
     }
@@ -78,9 +78,9 @@ const AdminPage = () => {
         </p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Create New Partner</h2>
+        <h2 className="text-xl font-semibold mb-4">Create New Company</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input label="Partner Name" {...register('name')} error={errors.name?.message} />
+          <Input label="Company Name" {...register('name')} error={errors.name?.message} />
           <Input label="Contact Email" {...register('contactEmail')} error={errors.contactEmail?.message} />
           <Input label="Website" {...register('website')} error={errors.website?.message} />
           <hr className="my-4" />
@@ -90,16 +90,16 @@ const AdminPage = () => {
           </div>
           <Input label="Admin Email" {...register('adminEmail')} error={errors.adminEmail?.message} />
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Partner'}
+            {isSubmitting ? 'Creating...' : 'Create Company'}
           </Button>
         </form>
       </div>
 
-      {partners.length > 0 && (
+      {companies.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h2 className="text-xl font-semibold mb-4">Existing Partners</h2>
+          <h2 className="text-xl font-semibold mb-4">Existing Companies</h2>
           <ul className="space-y-2">
-            {partners.map((p) => (
+            {companies.map((p) => (
               <li key={p.id} className="flex justify-between">
                 <span>{p.name}</span>
                 <span className="text-sm text-gray-500">{p.status}</span>
