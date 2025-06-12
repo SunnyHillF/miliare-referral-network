@@ -28,9 +28,12 @@ export const schema = a.schema({
     users: a.hasMany('User', 'companyId'),
     referrals: a.hasMany('Referral', 'companyId')
   }).authorization((allow) => [
-    allow.guest().to(['read']),
-    allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    allow.group('companyAdmin').to(['read', 'update'])
+    // Temporarily using publicApiKey for deployment without auth
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete']),
+    // Restore these when auth is re-enabled:
+    // allow.guest().to(['read']),
+    // allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    // allow.group('companyAdmin').to(['read', 'update'])
   ]),
 
   // User model (extends Cognito user)
@@ -54,11 +57,14 @@ export const schema = a.schema({
     createdAt: a.string().required(),
     updatedAt: a.string()
   }).authorization((allow) => [
-    allow.owner().to(['read']),
-    allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    allow.group('teamLead').to(['read']),
-    allow.group('orgLead').to(['update','read']),
-    allow.group('companyAdmin').to(['create', 'read', 'update', 'delete'])
+    // Temporarily using publicApiKey for deployment without auth
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete']),
+    // Restore these when auth is re-enabled:
+    // allow.owner().to(['read']),
+    // allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    // allow.group('teamLead').to(['read']),
+    // allow.group('orgLead').to(['update','read']),
+    // allow.group('companyAdmin').to(['create', 'read', 'update', 'delete'])
   ]),
 
   // Referral model
@@ -95,10 +101,13 @@ export const schema = a.schema({
     createdAt: a.string().required(),
     updatedAt: a.string()
   }).authorization((allow) => [
-    allow.owner().to(['create', 'read', 'update']),
-    allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    allow.group('teamLead').to(['update','read']),
-    allow.group('orgLead').to(['update','read'])
+    // Temporarily using publicApiKey for deployment without auth
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete']),
+    // Restore these when auth is re-enabled:
+    // allow.owner().to(['create', 'read', 'update']),
+    // allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    // allow.group('teamLead').to(['update','read']),
+    // allow.group('orgLead').to(['update','read'])
   ])
 });
 
@@ -107,8 +116,10 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
-    // API Key is used by the webhook to update referral status
+    // Temporarily using apiKey as default for deployment without auth
+    defaultAuthorizationMode: "apiKey",
+    // Restore userPool as default when auth is re-enabled:
+    // defaultAuthorizationMode: "userPool",
     apiKeyAuthorizationMode: {
       expiresInDays: 30,
     },
