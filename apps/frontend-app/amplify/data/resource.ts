@@ -60,7 +60,8 @@ const schema = a.schema({
       allow.authenticated().to(["read"]),
       allow.groups(["admin"]),
       allow.groups(["partnerAdmin"]).to(["read", "update"]),
-      allow.groups(["teamLead"]).to(["read"])
+      allow.groups(["teamLead"]).to(["read"]),
+      allow.resource(updateReferralStatusWebhook).to(["list"])
     ]),
 
   // Referrals model - tracks leads sent to partners
@@ -93,7 +94,8 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner().to(["create", "read", "update"]),
       allow.groups(["admin"]),
-      allow.groups(["teamLead"]).to(["read"])
+      allow.groups(["teamLead"]).to(["read"]),
+      allow.resource(updateReferralStatusWebhook).to(["get", "update"])
     ]),
 
   // Payments model - monthly payouts
