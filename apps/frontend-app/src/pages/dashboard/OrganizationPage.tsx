@@ -14,7 +14,7 @@ function generateApiKey() {
   return Array.from(array, (val) => val.toString(16).padStart(8, '0')).join('');
 }
 
-const CompanyAdminPage = () => {
+const OrganizationPage = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [period, setPeriod] = useState('Last 6 months');
 
@@ -94,7 +94,7 @@ const CompanyAdminPage = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Company Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Organization Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">Manage partner companies and referral settings.</p>
       </div>
 
@@ -154,4 +154,4 @@ const CompanyAdminPage = () => {
   );
 };
 
-export default CompanyAdminPage;
+export default OrganizationPage;

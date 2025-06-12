@@ -9,7 +9,7 @@ import ReferPage from './pages/dashboard/ReferPage';
 import PartnerDetailPage from './pages/dashboard/PartnerDetailPage';
 import TeamPage from './pages/dashboard/TeamPage';
 import AdminPage from './pages/dashboard/AdminPage';
-import CompanyAdminPage from './pages/dashboard/CompanyAdminPage';
+import OrganizationPage from './pages/dashboard/OrganizationPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
@@ -73,7 +73,7 @@ function App() {
           } />
           <Route path="company-admin" element={
             <ProtectedRoute requiredGroups={["partnerAdmin"]}>
-              <CompanyAdminPage />
+              <OrganizationPage />
             </ProtectedRoute>
           } />
           <Route path="admin" element={
