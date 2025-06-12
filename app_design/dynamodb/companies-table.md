@@ -30,8 +30,7 @@ This document outlines the schema for the `Companies` DynamoDB table.
   - `contractorPercentage` _(number)_ - Percentage paid to contractors
 - `trainingLinks` _(list)_ - List of training resource URLs
 - `updatedAt` _(string)_ - ISO timestamp of last update
-- `orgLeadId` _(string)_ - Organization lead responsible for this company (stored on `ORG#<OrgId>#TEAM#<TeamId>` item)
-- `teamLeadId` _(string)_ - Team lead responsible for this company (stored on `ORG#<OrgId>#TEAM#<TeamId>` item)
+- `orgId` _(string)_ - Organization lead responsible for this company (stored on `ORG#<OrgId>#TEAM#<TeamId>` item)
 
 ## User Profile Attributes (SK: `USER#<UserId>`)
 
@@ -49,8 +48,8 @@ User records are stored within the Companies table under the same `PK` as their 
 - `address` _(string)_ - Physical address
 - `teamId` _(string)_ - Team identifier (not all members need to belong to a team)
 - `teamLead` _(boolean)_ - Indicates if user is a team lead (default: false)
-- `uplineEVC` _(string)_ - Direct upline EVC name (required for WFG)
-- `uplineSMD` _(string)_ - Direct upline SMD name (required for WFG)
+- `teamLeadId` _(string)_ - Direct upline EVC name (required for WFG)
+- `OrgLeadId` _(string)_ - Direct upline SMD name (required for WFG)
 - `bankInfoDocument` _(string)_ - DocuSign envelope ID for bank info form
 - `taxDocument` _(string)_ - DocuSign envelope ID for tax form
 - `createdAt` _(string)_ - ISO timestamp of creation
