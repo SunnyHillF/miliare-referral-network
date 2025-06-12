@@ -10,6 +10,8 @@ import PartnerDetailPage from './pages/dashboard/PartnerDetailPage';
 import TeamPage from './pages/dashboard/TeamPage';
 import AdminPage from './pages/dashboard/AdminPage';
 import OrganizationPage from './pages/dashboard/OrganizationPage';
+import CompanyAdminPage from './pages/dashboard/CompanyAdminPage';
+import SiteAdminPage from './pages/dashboard/SiteAdminPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
@@ -74,6 +76,16 @@ function App() {
           <Route path="company-admin" element={
             <ProtectedRoute requiredGroups={["partnerAdmin"]}>
               <OrganizationPage />
+            </ProtectedRoute>
+          } />
+          <Route path="company-admin-tools" element={
+            <ProtectedRoute requiredGroups={["partnerAdmin"]}>
+              <CompanyAdminPage />
+            </ProtectedRoute>
+          } />
+          <Route path="site-admin" element={
+            <ProtectedRoute requiredGroup="admin">
+              <SiteAdminPage />
             </ProtectedRoute>
           } />
           <Route path="admin" element={
