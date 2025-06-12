@@ -10,26 +10,18 @@ const schema = a.schema({
     website: a.string().required(),
     status: a.string().required(),
     description: a.string(),
-    compensation: a.map()
-      .items({
-        agentPercentage: a.float(),
-        teamLeadPercentage: a.float(),
-        orgLeadPercentage: a.float(),
-        bonusPoolPercentage: a.float(),
-        mrnPercentage: a.float(),
-        contractorPercentage: a.float()
-      }),
-    trainingLinks: a.list().items(a.string()),
+    compensation: a.json(),
+    trainingLinks: a.string().array(),
     orgId: a.string(),
     createdAt: a.string().required(),
     updatedAt: a.string(),
     // Relationships
-    users: a.hasMany('User'),
-    referrals: a.hasMany('Referral')
-  }).authorization([
-    a.allow.public().to(['read']),
-    a.allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    a.allow.group('companyAdmin').to(['read', 'update'])
+    users: a.hasMany('User', ['id']),
+    referrals: a.hasMany('Referral', ['id'])
+  }).authorization((allow) => [
+    allow.guest().to(['read']),
+    allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    allow.group('companyAdmin').to(['read', 'update'])
   ]),
 
   // User model (extends Cognito user)
@@ -46,16 +38,16 @@ const schema = a.schema({
     bankInfoDocument: a.string(),
     taxDocument: a.string(),
     // Relationships
-    company: a.belongsTo('Company'),
-    referrals: a.hasMany('Referral'),
+    company: a.belongsTo('Company', ['id']),
+    referrals: a.hasMany('Referral', ['id']),
     createdAt: a.string().required(),
     updatedAt: a.string()
-  }).authorization([
-    a.allow.owner().to(['read']),
-    a.allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    a.allow.group('teamLead').to(['read']),
-    a.allow.group('orgLead').to(['update','read']),
-    a.allow.group('companyAdmin').to(['create', 'read', 'update', 'delete']),
+  }).authorization((allow) => [
+    allow.owner().to(['read']),
+    allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    allow.group('teamLead').to(['read']),
+    allow.group('orgLead').to(['update','read']),
+    allow.group('companyAdmin').to(['create', 'read', 'update', 'delete'])
   ]),
 
   // Referral model
@@ -74,26 +66,21 @@ const schema = a.schema({
     paymentStatus: a.enum(['PENDING', 'PROCESSED', 'FAILED']),
     period: a.string(), // YYYY-MM format
     processedAt: a.string(),
-    bankInfo: a.map()
-      .items({
-        accountNumber: a.string(),
-        routingNumber: a.string(),
-        accountType: a.string()
-      }),
+    bankInfo: a.json(),
     // Split referral information
-    splitUserIds: a.list().items(a.string()),
+    splitUserIds: a.string().array(),
     // Relationships
-    user: a.belongsTo('User'),
-    company: a.belongsTo('Company'),
+    user: a.belongsTo('User', ['id']),
+    company: a.belongsTo('Company', ['id']),
     teamLeadId: a.string(),
     orgLeadId: a.string(),
     createdAt: a.string().required(),
     updatedAt: a.string()
-  }).authorization([
-    a.allow.owner().to(['create', 'read', 'update']),
-    a.allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    a.allow.group('teamLead').to(['update','read']),
-    a.allow.group('orgLead').to(['update','read'])
+  }).authorization((allow) => [
+    allow.owner().to(['create', 'read', 'update']),
+    allow.group('admin').to(['create', 'read', 'update', 'delete']),
+    allow.group('teamLead').to(['update','read']),
+    allow.group('orgLead').to(['update','read'])
   ])
 });
 
