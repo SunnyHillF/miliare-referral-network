@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import PendingReferralsCard, { PendingReferral } from '../../components/PendingReferralsCard';
+import ReferralDetailsModal from '../../components/ReferralDetailsModal';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
 import { generateClient } from 'aws-amplify/data';
@@ -21,6 +22,7 @@ const BusinessPage = () => {
   const [successfulReferrals, setSuccessfulReferrals] = useState(0);
   const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([]);
   const [pendingReferrals, setPendingReferrals] = useState<PendingReferral[]>([]);
+  const [activeReferral, setActiveReferral] = useState<PendingReferral | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -168,6 +170,14 @@ const BusinessPage = () => {
     console.log('Navigate to all referrals page');
   };
 
+  const handleSelectReferral = (referral: PendingReferral) => {
+    setActiveReferral(referral);
+  };
+
+  const handleStatusUpdated = (id: string) => {
+    setPendingReferrals((prev) => prev.filter((r) => r.id !== id));
+  };
+
   const handleViewPaymentHistory = () => {
     console.log('Navigate to payment history page');
   };
@@ -207,9 +217,10 @@ const BusinessPage = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pending Referrals Component */}
-        <PendingReferralsCard 
+        <PendingReferralsCard
           referrals={pendingReferrals}
           onViewAll={handleViewAllReferrals}
+          onSelect={handleSelectReferral}
         />
         
         {/* Recent Payments Component */}
@@ -237,6 +248,12 @@ const BusinessPage = () => {
           </div>
         </div>
       </div>
+      <ReferralDetailsModal
+        referral={activeReferral}
+        isOpen={Boolean(activeReferral)}
+        onClose={() => setActiveReferral(null)}
+        onStatusUpdated={handleStatusUpdated}
+      />
     </div>
   );
 };
