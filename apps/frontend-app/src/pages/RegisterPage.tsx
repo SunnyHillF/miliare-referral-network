@@ -160,6 +160,9 @@ const RegisterPage = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
     try {
+      // Get the company name from the selected company
+      const companyName = selectedCompany?.companyName || '';
+      
       // Register user with proper Cognito attributes
       const completed = await registerUser({
         firstName: data.firstName,
@@ -167,7 +170,8 @@ const RegisterPage = () => {
         email: data.email,
         phoneNumber: data.phoneNumber,
         address: data.address,
-        company: data.companyId, // This maps to custom:companyId in AuthContext
+        company: companyName, // Store company name in custom:company
+        companyId: data.companyId, // Store company ID in custom:companyId
         activated: true, // Automatically activate new users
         password: data.password,
       });

@@ -19,6 +19,7 @@ type User = {
   phoneNumber?: string;
   address?: string;
   company: string;
+  companyId?: string;
   groups: string[];
   teamId?: string;
   divisionLeadId?: string;
@@ -69,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         teamLead: false, // Default to false for new users
         teamLeadId: null,
         divisionLeadId: userData.divisionLeadId || null,
-        companyId: userData.company,
+        companyId: userData.companyId || userData.company,
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
@@ -102,7 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           email: attributes.email ?? currentUser.signInDetails?.loginId ?? "",
           phoneNumber: attributes.phone_number ?? undefined,
           address: attributes.address ?? undefined,
-          company: attributes["custom:companyId"] ?? "WFG",
+          company: attributes["custom:company"] ?? "",
+          companyId: attributes["custom:companyId"] ?? "",
           groups,
           teamId: attributes["custom:teamId"] ?? undefined,
           divisionLeadId: attributes["custom:divisionLeadId"] ?? undefined,
@@ -171,8 +173,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             family_name: userData.lastName,
             phone_number: userData.phoneNumber,
             address: userData.address,
-            // Map the selected company to the CompanyId custom attribute in Cognito
-            "custom:companyId": userData.company,
+            // Store both company name and company ID in Cognito
+            "custom:company": userData.company,
+            "custom:companyId": userData.companyId || "",
             "custom:teamId": userData.teamId || "",
             "custom:divisionLeadId": userData.divisionLeadId || "",
             "custom:activated": userData.activated ? "true" : "false",
@@ -220,7 +223,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         attributes["address"] = updates.address;
       }
       if (updates.company !== undefined) {
-        attributes["custom:companyId"] = updates.company;
+        attributes["custom:company"] = updates.company;
+      }
+      if (updates.companyId !== undefined) {
+        attributes["custom:companyId"] = updates.companyId;
       }
       if (updates.teamId !== undefined) {
         attributes["custom:teamId"] = updates.teamId;

@@ -46,7 +46,7 @@ export const auth = defineAuth({
       dataType: "String",
       mutable: true,
     },
-    "custom:teamId": {
+    "custom:teamLeadId": {
       dataType: "String",
       mutable: true,
     },

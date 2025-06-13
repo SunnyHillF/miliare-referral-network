@@ -3,6 +3,7 @@ import { RefreshCw, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
+import { useAuth } from '../../contexts/AuthContext';
 
 function generateApiKey() {
   // Generate a shorter, more manageable API key (32 characters)
@@ -21,6 +22,7 @@ async function hashApiKey(apiKey: string): Promise<string> {
 }
 
 const SiteAdminPage = () => {
+  const { user, isLoading: userLoading } = useAuth();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [company, setCompany] = useState<Schema['Company']['type'] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,31 +36,51 @@ const SiteAdminPage = () => {
   const EndpointCopyIcon = endpointCopied ? Check : Copy;
 
   const loadCompanyData = useCallback(async () => {
+    if (!user?.companyId) {
+      setError('No company ID found for user');
+      return;
+    }
+
     try {
       setLoading(true);
-      // For now, get the first company - in a real app, you'd get the user's company
-      const companies = await client.models.Company.list();
-      if (companies.data.length > 0) {
-        setCompany(companies.data[0]);
+      setError(null);
+      
+      // Get the user's specific company
+      const { data } = await client.models.Company.get({ id: user.companyId });
+      if (data) {
+        setCompany(data);
+        console.log('Loaded company:', data);
+      } else {
+        setError('Company not found');
       }
     } catch (err) {
-      setError('Failed to load company data');
+      setError(`Failed to load company data: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error loading company:', err);
     } finally {
       setLoading(false);
     }
-  }, [client]);
+  }, [client, user?.companyId]);
 
   // Load company data on component mount
   useEffect(() => {
-    loadCompanyData();
-  }, [loadCompanyData]);
+    if (user) {
+      loadCompanyData();
+    }
+  }, [loadCompanyData, user]);
 
   const handleRegenerate = async () => {
     console.log('handleRegenerate called, company:', company);
+    console.log('User groups:', user?.groups);
     
     if (!company) {
       setError('No company found');
+      return;
+    }
+
+    // Check if user has permission to update company
+    const canUpdate = user?.groups?.includes('siteAdmin');
+    if (!canUpdate) {
+      setError('You do not have permission to update API keys. Required role: siteAdmin');
       return;
     }
 
@@ -75,12 +97,22 @@ const SiteAdminPage = () => {
       
       // Update company with new hashed API key
       console.log('Updating company with ID:', company.id);
+      console.log('Update payload:', { id: company.id, webhookApiKeyHash: hashedKey });
+      
       const updatedCompany = await client.models.Company.update({
         id: company.id,
         webhookApiKeyHash: hashedKey
       });
 
       console.log('Update result:', updatedCompany);
+      console.log('Update errors:', updatedCompany.errors);
+
+      if (updatedCompany.errors && updatedCompany.errors.length > 0) {
+        const errorMessage = updatedCompany.errors.map(e => e.message).join(', ');
+        setError(`Update failed with errors: ${errorMessage}`);
+        console.error('GraphQL errors:', updatedCompany.errors);
+        return;
+      }
 
       if (updatedCompany.data) {
         setCompany(updatedCompany.data);
@@ -125,6 +157,41 @@ const SiteAdminPage = () => {
     }
   };
 
+  if (userLoading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Site Administration</h1>
+          <p className="mt-1 text-sm text-gray-500">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Site Administration</h1>
+          <p className="mt-1 text-sm text-red-500">User not authenticated</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has siteAdmin access
+  const isSiteAdmin = user?.groups?.includes('siteAdmin');
+  if (!isSiteAdmin) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Site Administration</h1>
+          <p className="mt-1 text-sm text-red-500">Access denied. This page is restricted to Site Administrators only.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -138,11 +205,24 @@ const SiteAdminPage = () => {
         </div>
       )}
 
+      {/* Debug info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <h3 className="text-blue-900 font-medium mb-2">Debug Information</h3>
+        <div className="text-sm text-blue-800 space-y-1">
+          <p><strong>User ID:</strong> {user?.id}</p>
+          <p><strong>User Groups:</strong> {user?.groups?.join(', ') || 'None'}</p>
+          <p><strong>User Company ID:</strong> {user?.companyId}</p>
+          <p><strong>Loaded Company ID:</strong> {company?.id}</p>
+          <p><strong>Company Name:</strong> {company?.companyName}</p>
+          <p><strong>Has API Key Hash:</strong> {company?.webhookApiKeyHash ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Webhook Configuration</h2>
           <p className="text-gray-700 mb-4">
-            This page is accessible to Company Admins and Site Admins. Manage company settings, company configurations, and referral workflows here.
+            This page is accessible to Site Administrators only. Manage company settings, company configurations, and referral workflows here.
           </p>
         </div>
         
