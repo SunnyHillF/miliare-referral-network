@@ -1,34 +1,113 @@
-import React, { useState } from 'react';
-import TeamMembersCard, { TeamMember } from '../../components/TeamMembersCard';
-import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
+import React, { useEffect, useRef, useState } from 'react';
+import CompanyMembersCard, { CompanyMember } from '../../components/CompanyMembersCard';
+import PendingPaymentsCard, { PendingPayment } from '../../components/PendingPaymentsCard';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../../amplify/data/resource';
+import { useAuth } from '../../contexts/AuthContext';
+import { listCompanyUsers, setUserActivated, CompanyUser } from '../../utils/manageUsers';
 
 const CompanyAdminPage = () => {
-  const [members, setMembers] = useState<TeamMember[]>([
-    { id: 1, name: 'Alice Thompson', totalReferrals: 120, pendingCommissions: 3450.5, successRate: 0.76, active: true },
-    { id: 2, name: 'Brian Davis', totalReferrals: 98, pendingCommissions: 2150.0, successRate: 0.64, active: true },
-    { id: 3, name: 'Carla Martinez', totalReferrals: 150, pendingCommissions: 4800.75, successRate: 0.82, active: false },
-  ]);
+  const { user } = useAuth();
+  const client = generateClient<Schema>();
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  const [payments, setPayments] = useState<RecentPayment[]>([
-    { id: 1, date: '2023-06-30', amount: 3200.5, status: 'Paid', company: 'Alice Thompson', paid: true },
-    { id: 2, date: '2023-06-25', amount: 2500.0, status: 'Paid', company: 'Brian Davis', paid: true },
-    { id: 3, date: '2023-06-20', amount: 4100.75, status: 'Unpaid', company: 'Carla Martinez', paid: false },
-  ]);
+  const [members, setMembers] = useState<CompanyMember[]>([]);
+  const [payments, setPayments] = useState<PendingPayment[]>([]);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      if (!user?.company) return;
+      try {
+        const users = await listCompanyUsers(user.company);
+        setMembers(
+          users.map((u: CompanyUser) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            active: u.activated,
+          }))
+        );
+      } catch (err) {
+        console.error('Failed to load users', err);
+      }
+    };
+
+    const loadPayments = async () => {
+      if (!user?.company) return;
+      try {
+        const { data } = await client.models.Referral.list({
+          filter: {
+            companyId: { eq: user.company },
+            paymentStatus: { eq: 'PENDING' },
+          },
+        });
+
+        const results: PendingPayment[] = [];
+        for (const r of data) {
+          let name = r.userId;
+          try {
+            const { data: u } = await client.models.User.get({ id: r.userId });
+            if (u?.name) name = u.name;
+          } catch {
+            // ignore
+          }
+          results.push({
+            id: r.id,
+            date: r.createdAt || '',
+            amount: r.amount || 0,
+            status: 'Pending',
+            company: name,
+            paid: false,
+          });
+        }
+        setPayments(results);
+      } catch (err) {
+        console.error('Failed to load payments', err);
+      }
+    };
+
+    loadMembers();
+    loadPayments();
+  }, [user, client]);
 
 
 
-  const toggleMemberStatus = (id: number) => {
+  const toggleMemberStatus = (id: string | number) => {
+    let newStatus = false;
     setMembers((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, active: !m.active } : m))
+      prev.map((m) => {
+        if (m.id === id) {
+          newStatus = !m.active;
+          return { ...m, active: newStatus };
+        }
+        return m;
+      })
     );
+
+    clearTimeout(timers.current[String(id)]);
+    timers.current[String(id)] = setTimeout(async () => {
+      try {
+        await setUserActivated(String(id), newStatus);
+      } catch (err) {
+        console.error('Failed to update user', err);
+      }
+    }, 10000);
   };
 
-  const togglePaymentStatus = (id: number) => {
+  const changePaymentStatus = (id: string | number, status: 'PROCESSED' | 'FAILED') => {
     setPayments((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, paid: !p.paid, status: p.paid ? 'Unpaid' : 'Paid' } : p
-      )
+      prev.map((p) => (p.id === id ? { ...p, status: status === 'PROCESSED' ? 'Processed' : 'Failed' } : p))
     );
+
+    clearTimeout(timers.current[`pay-${id}`]);
+    timers.current[`pay-${id}`] = setTimeout(async () => {
+      try {
+        await client.models.Referral.update({ id: String(id), paymentStatus: status, processedAt: new Date().toISOString() });
+        setPayments((prev) => prev.filter((p) => p.id !== id));
+      } catch (err) {
+        console.error('Failed to update referral', err);
+      }
+    }, 10000);
   };
 
   const handleViewHistory = () => {
@@ -45,16 +124,16 @@ const CompanyAdminPage = () => {
 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <TeamMembersCard
+        <CompanyMembersCard
           members={members}
           showStatusToggle
           onToggleStatus={toggleMemberStatus}
         />
-        <RecentPaymentsCard
+        <PendingPaymentsCard
           payments={payments}
           onViewHistory={handleViewHistory}
           showStatusToggle
-          onToggleStatus={togglePaymentStatus}
+          onStatusChange={changePaymentStatus}
         />
       </div>
 
