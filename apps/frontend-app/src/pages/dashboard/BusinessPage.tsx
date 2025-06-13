@@ -77,7 +77,10 @@ const BusinessPage = () => {
               date: r.createdAt || '',
               client: r.name,
               company: companyName,
-              status: r.status?.replace('_', ' ') || 'In Progress',
+              status:
+                r.status === 'IN_PROGRESS'
+                  ? 'In Process'
+                  : r.status?.replace('_', ' ') || 'In Process',
               estimatedCommission: r.amount ?? null,
             });
           }
