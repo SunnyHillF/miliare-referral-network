@@ -1,15 +1,16 @@
 import { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminAddUserToGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
-export async function invitePartnerAdmin({
+export async function inviteCompanyAdmin({
   email,
   firstName,
   lastName,
-  partnerId,
+  companyId,
 }: {
   email: string;
   firstName: string;
   lastName: string;
-  partnerId: string;
+  companyId: string;
 }) {
   const region = import.meta.env.VITE_AWS_REGION;
   const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
@@ -18,7 +19,16 @@ export async function invitePartnerAdmin({
     throw new Error('Missing Cognito configuration');
   }
 
-  const client = new CognitoIdentityProviderClient({ region });
+  const { credentials } = await fetchAuthSession();
+
+  const client = new CognitoIdentityProviderClient({
+    region,
+    credentials: {
+      accessKeyId: credentials!.accessKeyId,
+      secretAccessKey: credentials!.secretAccessKey,
+      sessionToken: credentials!.sessionToken,
+    },
+  });
 
   await client.send(
     new AdminCreateUserCommand({
@@ -29,7 +39,7 @@ export async function invitePartnerAdmin({
         { Name: 'email_verified', Value: 'true' },
         { Name: 'given_name', Value: firstName },
         { Name: 'family_name', Value: lastName },
-        { Name: 'custom:partnerId', Value: partnerId },
+        { Name: 'custom:companyId', Value: companyId },
       ],
     })
   );
@@ -38,7 +48,7 @@ export async function invitePartnerAdmin({
     new AdminAddUserToGroupCommand({
       UserPoolId: userPoolId,
       Username: email,
-      GroupName: 'partnerAdmin',
+      GroupName: 'companyAdmin',
     })
   );
 }

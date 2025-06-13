@@ -1,4 +1,4 @@
-import { defineAuth } from '@aws-amplify/backend';
+import { defineAuth } from "@aws-amplify/backend";
 
 /**
  * Define and configure your auth resource for Miliare
@@ -9,16 +9,17 @@ export const auth = defineAuth({
     email: {
       verificationEmailStyle: "CODE",
       verificationEmailSubject: "Verify your Miliare account",
-      verificationEmailBody: (createCode) => `Welcome to Miliare! Use this code to confirm your account: ${createCode()}`,
+      verificationEmailBody: (createCode) =>
+        `Welcome to Miliare! Use this code to confirm your account: ${createCode()}`,
     },
   },
   // User pool groups used throughout the app for authorization
-  groups: ["admin", "teamLead", "partnerAdmin"],
+  groups: ["admin", "teamLead", "divisionLead", "companyAdmin", "siteAdmin"],
   userAttributes: {
     // Standard attributes
     email: {
       required: true,
-      mutable: true,
+      mutable: false,
     },
     givenName: {
       required: true,
@@ -37,21 +38,33 @@ export const auth = defineAuth({
       mutable: true,
     },
     // Custom attributes for Miliare business domain
-    'custom:partnerId': {
-      dataType: 'String',
+    "custom:company": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:teamId': {
-      dataType: 'String',
+    "custom:companyId": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:uplineEVC': {
-      dataType: 'String',
+    "custom:teamLeadId": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:uplineSMD': {
-      dataType: 'String',
+    "custom:divisionLeadId": {
+      dataType: "String",
       mutable: true,
     },
+    "custom:activated": {
+      dataType: "Boolean",
+      mutable: true,
+    },
+  },
+  // Account recovery options
+  accountRecovery: "EMAIL_ONLY",
+  // Multi-factor authentication (optional but recommended)
+  multifactor: {
+    mode: "OPTIONAL",
+    totp: true,
+    sms: false, // Disable SMS for cost reasons, TOTP is more secure anyway
   },
 });

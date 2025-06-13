@@ -2,22 +2,24 @@ import React from 'react';
 import { Button } from './ui/Button';
 
 export type PendingReferral = {
-  id: number;
+  id: string | number;
   date: string;
   client: string;
   company: string;
   status: string;
-  estimatedCommission: number;
+  estimatedCommission?: number | null;
 };
 
 interface PendingReferralsCardProps {
   referrals: PendingReferral[];
   onViewAll?: () => void;
+  onSelect?: (referral: PendingReferral) => void;
 }
 
-const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({ 
-  referrals, 
-  onViewAll 
+const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
+  referrals,
+  onViewAll,
+  onSelect
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -31,7 +33,11 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
       {/* Mobile Card Layout */}
       <div className="block md:hidden space-y-4">
         {referrals.map((referral) => (
-          <div key={referral.id} className="p-4 border border-gray-200 rounded-lg">
+          <div
+            key={referral.id}
+            className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+            onClick={() => onSelect?.(referral)}
+          >
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h3 className="font-medium text-gray-900">{referral.client}</h3>
@@ -47,7 +53,9 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-500">{new Date(referral.date).toLocaleDateString()}</span>
-              <span className="font-medium text-gray-900">${referral.estimatedCommission.toLocaleString()}</span>
+              <span className="font-medium text-gray-900">
+                {referral.estimatedCommission ? `$${referral.estimatedCommission.toLocaleString()}` : 'TBD'}
+              </span>
             </div>
           </div>
         ))}
@@ -74,7 +82,11 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {referrals.map((referral) => (
-              <tr key={referral.id} className="hover:bg-gray-50">
+              <tr
+                key={referral.id}
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => onSelect?.(referral)}
+              >
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div>
                     <div className="text-sm font-medium text-gray-900">{referral.client}</div>
@@ -94,7 +106,7 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
                   </span>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  ${referral.estimatedCommission.toLocaleString()}
+                  {referral.estimatedCommission ? `$${referral.estimatedCommission.toLocaleString()}` : 'TBD'}
                 </td>
               </tr>
             ))}

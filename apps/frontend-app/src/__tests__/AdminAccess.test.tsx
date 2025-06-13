@@ -37,7 +37,7 @@ describe('Admin access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: /site admin/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^admin$/i })).toBeInTheDocument();
   });
 
   it('hides Admin link for users without admin group', () => {
@@ -104,7 +104,7 @@ describe('Admin access', () => {
     expect(screen.getByText(/admin dashboard/i)).toBeInTheDocument();
   });
 
-  it('shows partner creation form on admin dashboard', () => {
+  it('shows company creation form on admin dashboard', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       ...baseAuth,
       user: {
@@ -122,6 +122,6 @@ describe('Admin access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /create new partner/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /create new company/i })).toBeInTheDocument();
   });
 });

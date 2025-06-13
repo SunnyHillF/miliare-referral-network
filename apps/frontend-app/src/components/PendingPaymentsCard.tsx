@@ -1,38 +1,33 @@
-import React from 'react';
-import { CreditCard } from 'lucide-react';
-import { Button } from './ui/Button';
+import React from 'react'
+import { CreditCard } from 'lucide-react'
+import { Button } from './ui/Button'
 
-export type RecentPayment = {
-  id: string | number;
-  date: string;
-  amount: number;
-  status: string;
-  company: string;
-  paid?: boolean;
-};
-
-interface RecentPaymentsCardProps {
-  payments: RecentPayment[];
-  onViewHistory?: () => void;
-  showStatusToggle?: boolean;
-  onToggleStatus?: (id: string | number) => void;
+export type PendingPayment = {
+  id: string | number
+  date: string
+  amount: number
+  status: string
+  company: string
 }
 
-const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
-  payments,
-  onViewHistory,
-  showStatusToggle,
-  onToggleStatus,
-}) => {
+interface PendingPaymentsCardProps {
+  payments: PendingPayment[]
+  onViewHistory?: () => void
+  onStatusChange?: (id: string | number, status: 'PROCESSED' | 'FAILED') => void
+}
+
+const PendingPaymentsCard: React.FC<PendingPaymentsCardProps> = ({ payments, onViewHistory, onStatusChange }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Payments</h2>
-        <Button variant="outline" size="sm" onClick={onViewHistory}>
-          Payment History
-        </Button>
+        <h2 className="text-lg font-semibold text-gray-900">Pending Payments</h2>
+        {onViewHistory && (
+          <Button variant="outline" size="sm" onClick={onViewHistory}>
+            Payment History
+          </Button>
+        )}
       </div>
-      
+
       <div className="space-y-4">
         {payments.map((payment) => (
           <div
@@ -47,24 +42,23 @@ const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
               <p className="text-xs text-gray-500">{new Date(payment.date).toLocaleDateString()}</p>
             </div>
             <div className="ml-4 text-right">
-              <p className="text-sm font-semibold text-gray-900">${(payment.amount || 0).toLocaleString()}</p>
+              <p className="text-sm font-semibold text-gray-900">${payment.amount.toLocaleString()}</p>
               <p className="text-xs font-medium text-green-600">{payment.status}</p>
             </div>
-            {showStatusToggle && (
-              <div className="ml-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onToggleStatus && onToggleStatus(payment.id)}
-                >
-                  {payment.paid ? 'Mark Unpaid' : 'Mark Paid'}
+            {onStatusChange && (
+              <div className="ml-4 space-x-2">
+                <Button variant="outline" size="sm" onClick={() => onStatusChange(payment.id, 'PROCESSED')}>
+                  Processed
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onStatusChange(payment.id, 'FAILED')}>
+                  Failed
                 </Button>
               </div>
             )}
           </div>
         ))}
       </div>
-      
+
       {payments.length === 0 && (
         <div className="text-center py-8">
           <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -72,7 +66,7 @@ const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default RecentPaymentsCard; 
+export default PendingPaymentsCard

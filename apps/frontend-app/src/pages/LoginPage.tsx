@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -153,7 +153,7 @@ const LoginPage = () => {
                   <Building size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-xl">Strategic Partnerships</h3>
+                  <h3 className="font-semibold text-xl">Strategic Companies</h3>
                   <p className="text-white/80 mt-1">Connect with industry-leading financial service providers</p>
                 </div>
               </div>

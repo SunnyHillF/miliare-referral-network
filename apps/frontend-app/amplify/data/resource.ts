@@ -1,142 +1,161 @@
-import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { defineData, a } from "@aws-amplify/backend";
+import type { ClientSchema } from "@aws-amplify/backend";
 import { updateReferralStatusWebhook } from "../functions/updateReferralStatusWebhook/resource";
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any user authenticated via an API key can "create", "read",
-"update", and "delete" any "Todo" records.
-=========================================================================*/
-const schema = a.schema({
-  // User Profile model - extends Cognito user data
-  UserProfile: a
-    .model({
-      id: a.id(), // Matches Cognito sub
-      name: a.string().required(),
-      email: a.email().required(),
-      phone: a.string(),
-      address: a.string(),
-      company: a.string(),
-      teamId: a.string(), // Team identifier (optional - not all members need to belong to a team)
-      teamLead: a.boolean(), // Indicates if user is a team lead (default: false)
-      uplineEVC: a.string(), // Required if company is WFG
-      uplineSMD: a.string(), // Required if company is WFG
-      bankInfoDocument: a.string(), // DocuSign envelope ID
-      taxDocument: a.string(), // DocuSign envelope ID
-      referrals: a.hasMany("Referral", "userProfileId"),
-      payments: a.hasMany("Payment", "userProfileId"),
-    })
-    .authorization((allow) => [
-      allow.owner(),
-      allow.groups(["admin"]),
-      allow.groups(["teamLead"]).to(["read"])
-    ])
-    .secondaryIndexes((index) => [
-      index("teamId").sortKeys(["id"]).queryField("listUsersByTeam"),
-    ]),
-
-  // Strategic Partners model
-  Partner: a
+export const schema = a.schema({
+  // Company model
+  Company: a
     .model({
       id: a.id(),
-      name: a.string().required(),
-      contactEmail: a.email().required(),
-      website: a.url().required(),
-      status: a.enum(["ACTIVE", "INACTIVE"]),
+      companyName: a.string().required(),
+      contactEmail: a.string().required(),
+      website: a.string().required(),
+      status: a.string().required(),
       description: a.string(),
-      // Compensation structure
-      agentPercentage: a.float(),
-      smdPercentage: a.float(),
-      evcPercentage: a.float(),
-      bonusPoolPercentage: a.float(),
-      mrnPercentage: a.float(),
-      contractorPercentage: a.float(),
+      compensation: a.customType({
+        agentPercentage: a.float(),
+        teamLeadPercentage: a.float(),
+        divisionLeadPercentage: a.float(),
+        bonusPoolPercentage: a.float(),
+        mrnPercentage: a.float(),
+        contracterPercentage: a.float(),
+      }),
       trainingLinks: a.string().array(),
+      divisionId: a.string(),
       webhookApiKeyHash: a.string(),
-      webhookUrl: a.string(),
-      referrals: a.hasMany("Referral", "partnerId"),
+      createdAt: a.string().required(),
+      updatedAt: a.string(),
+      // Relationships
+      users: a.hasMany("User", "companyId"),
+      referrals: a.hasMany("Referral", "companyId"),
+      trainingResources: a.hasMany("TrainingResource", "companyId"),
+      faqItems: a.hasMany("FaqItem", "companyId"),
     })
     .authorization((allow) => [
-      allow.authenticated().to(["read"]),
-      allow.groups(["admin"]),
-      allow.groups(["partnerAdmin"]).to(["read", "update"]),
-      allow.groups(["teamLead"]).to(["read"])
+      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.publicApiKey().to(["create", "read", "update", "delete"]),
+      // COMMENTED OUT - Will restore when Cognito is recreated:
+      // allow.guest().to(["read"]),
+      // allow.group("admin").to(["create", "read", "update", "delete"]),
+      // allow.group("companyAdmin").to(["read", "update"]),
+      // allow.authenticated("identityPool").to(["read"]),
     ]),
 
-  // Referrals model - tracks leads sent to partners
+  // User model (extends Cognito user)
+  User: a
+    .model({
+      id: a.id(), // Maps to Cognito sub
+      name: a.string().required(),
+      email: a.string().required(),
+      phone: a.string(),
+      address: a.string(),
+      teamId: a.string(),
+      teamLead: a.boolean(),
+      teamLeadId: a.string(),
+      divisionLeadId: a.string(),
+      bankInfoDocument: a.string(),
+      taxDocument: a.string(),
+      // Company relationship
+      companyId: a.id(),
+      company: a.belongsTo("Company", "companyId"),
+      // Referrals relationship
+      referrals: a.hasMany("Referral", "userId"),
+      createdAt: a.string().required(),
+      updatedAt: a.string(),
+    })
+    .authorization((allow) => [
+      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.publicApiKey().to(["create", "read", "update", "delete"]),
+      // COMMENTED OUT - Will restore when Cognito is recreated:
+      // allow.owner().to(["create", "read", "update"]),
+      // allow.group("admin").to(["create", "read", "update", "delete"]),
+      // allow.group("teamLead").to(["read"]),
+      // allow.group("divisionLead").to(["update", "read"]),
+      // allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
+    ]),
+
+  // Referral model
   Referral: a
     .model({
       id: a.id(),
-      userProfileId: a.id().required(), // References UserProfile
-      partnerId: a.id().required(), // References Partner
-      leadId: a.string().required(),
-      clientName: a.string().required(),
+      companyId: a.string().required(),
+      name: a.string().required(),
+      email: a.string().required(),
+      phoneNumber: a.string(),
+      approximateValue: a.float(),
+      userId: a.string().required(),
       status: a.enum(["IN_PROGRESS", "IN_REVIEW", "PAID", "REJECTED"]),
-      amount: a.integer().required(), // Amount in cents
-      uplineEVC: a.string(),
-      uplineSMD: a.string(),
-      // Commission distribution
-      agentAmount: a.integer(),
-      smdAmount: a.integer(),
-      evcAmount: a.integer(),
-      bonusPoolAmount: a.integer(),
-      mrnAmount: a.integer(),
-      contractorAmount: a.integer(),
-      partnerType: a.enum(["DIRECT_PAYMENT", "MRN_PAYMENT"]),
-      paymentStatus: a.enum(["PENDING", "PROCESSED", "FAILED"]),
       notes: a.string(),
-      paidAt: a.datetime(),
-      userProfile: a.belongsTo("UserProfile", "userProfileId"),
-      partner: a.belongsTo("Partner", "partnerId"),
-      payments: a.hasMany("Payment", "referralId"),
-    })
-    .authorization((allow) => [
-      allow.owner().to(["create", "read", "update"]),
-      allow.groups(["admin"]),
-      allow.groups(["teamLead"]).to(["read"])
-    ]),
-
-  // Payments model - monthly payouts
-  Payment: a
-    .model({
-      id: a.id(),
-      userProfileId: a.id().required(), // References UserProfile
-      referralId: a.id(), // References Referral
-      amount: a.integer().required(), // Amount in cents
+      // Payment information
+      paymentId: a.string(),
+      amount: a.float(),
       type: a.enum(["COMMISSION", "BONUS_POOL", "UPLINE"]),
-      status: a.enum(["PENDING", "PROCESSED", "FAILED"]),
+      paymentType: a.enum(["COMMISSION", "BONUS_POOL", "UPLINE"]),
+      paymentStatus: a.enum(["PENDING", "PROCESSED", "FAILED"]),
       period: a.string(), // YYYY-MM format
-      processedAt: a.datetime(),
-      // Bank account info (last 4 digits only)
-      accountNumber: a.string(),
-      routingNumber: a.string(),
-      accountType: a.string(),
-      notes: a.string(),
-      userProfile: a.belongsTo("UserProfile", "userProfileId"),
-      referral: a.belongsTo("Referral", "referralId"),
+      processedAt: a.string(),
+      bankInfo: a.customType({
+        accountNumber: a.string(),
+        routingNumber: a.string(),
+        accountType: a.string(),
+      }),
+      // Split referral information
+      splitUserIds: a.string().array(),
+      // Relationships
+      user: a.belongsTo("User", "userId"),
+      company: a.belongsTo("Company", "companyId"),
+      teamLeadId: a.string(),
+      divisionLeadId: a.string(),
+      createdAt: a.string().required(),
+      updatedAt: a.string(),
     })
     .authorization((allow) => [
-      allow.owner().to(["create", "read", "update", "delete"]),
-      allow.groups(["admin"]),
-      allow.groups(["teamLead"]).to(["read"])
+      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.publicApiKey().to(["create", "read", "update", "delete"]),
+      // COMMENTED OUT - Will restore when Cognito is recreated:
+      // allow.owner().to(["create", "read", "update"]),
+      // allow.group("admin").to(["create", "read", "update", "delete"]),
+      // allow.group("teamLead").to(["update", "read"]),
+      // allow.group("divisionLead").to(["update", "read"]),
+      // allow.authenticated("identityPool").to(["read", "update"]),
     ]),
 
-  // Team Performance Reports - aggregated data for team leads
-  TeamReport: a
+  // Training resource model
+  TrainingResource: a
     .model({
       id: a.id(),
-      teamLeadId: a.id().required(), // References UserProfile of team lead
-      period: a.string().required(), // YYYY-MM format
-      totalReferrals: a.integer().required(),
-      totalCommissions: a.integer().required(), // Amount in cents
-      totalPayments: a.integer().required(), // Amount in cents
-      teamMemberCount: a.integer().required(),
-      topPerformerId: a.id(), // References UserProfile of top performer
-      reportData: a.json(), // Detailed breakdown data
+      companyId: a.string().required(),
+      title: a.string().required(),
+      type: a.enum(["video", "document"]),
+      url: a.string().required(),
+      duration: a.string(),
+      company: a.belongsTo("Company", "companyId"),
+      createdAt: a.string().required(),
+      updatedAt: a.string(),
     })
     .authorization((allow) => [
-      allow.owner().to(["read"]),
-      allow.groups(["admin"])
+      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.publicApiKey().to(["create", "read", "update", "delete"]),
+      // COMMENTED OUT - Will restore when Cognito is recreated:
+      // allow.group("admin").to(["create", "read", "update", "delete"]),
+    ]),
+
+  // FAQ model
+  FaqItem: a
+    .model({
+      id: a.id(),
+      companyId: a.string().required(),
+      question: a.string().required(),
+      answer: a.string().required(),
+      company: a.belongsTo("Company", "companyId"),
+      createdAt: a.string().required(),
+      updatedAt: a.string(),
+    })
+    .authorization((allow) => [
+      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.publicApiKey().to(["create", "read", "update", "delete"]),
+      // COMMENTED OUT - Will restore when Cognito is recreated:
+      // allow.group("admin").to(["create", "read", "update", "delete"]),
     ]),
 });
 
@@ -145,11 +164,18 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
+    // TEMPORARY: Using API key as default while Cognito user pool is being recreated
+    defaultAuthorizationMode: "apiKey",
+    // COMMENTED OUT - Will restore when Cognito is recreated:
+    // defaultAuthorizationMode: "userPool",
+    // API Key is used by the webhook to update referral status
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
   functions: {
-    updateReferralStatusWebhook
-  }
+    updateReferralStatusWebhook,
+  },
 });
 
 /*== STEP 2 ===============================================================

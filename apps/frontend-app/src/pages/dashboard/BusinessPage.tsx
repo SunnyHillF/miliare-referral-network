@@ -1,32 +1,105 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 // Icons are referenced by name via an icon map; avoid importing unused icons
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import PendingReferralsCard, { PendingReferral } from '../../components/PendingReferralsCard';
+import ReferralDetailsModal from '../../components/ReferralDetailsModal';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../../amplify/data/resource';
+import { useAuth } from '../../contexts/AuthContext';
+
+const client = generateClient<Schema>();
 
 const BusinessPage = () => {
-  
-  // Mock data for demonstration
-  const totalEarnings = 14250.75;
-  const pendingCommissions = 2430.50;
-  const referralsCount = 35;
-  const successfulReferrals = 28;
-  
-  const recentPayments: RecentPayment[] = [
-    { id: 1, date: '2023-06-15', amount: 1250.50, status: 'Paid', company: 'Sunny Hill Financial' },
-    { id: 2, date: '2023-05-20', amount: 945.25, status: 'Paid', company: 'Prime Corporate Services' },
-    { id: 3, date: '2023-04-10', amount: 1750.00, status: 'Paid', company: 'ANCO Insurance' },
-    { id: 4, date: '2023-03-05', amount: 830.00, status: 'Paid', company: 'Summit Business Syndicate' },
-  ];
-  
-  const pendingReferrals: PendingReferral[] = [
-    { id: 1, date: '2023-06-28', client: 'John Smith', company: 'Prime Corporate Services', status: 'In Progress', estimatedCommission: 850.00 },
-    { id: 2, date: '2023-06-25', client: 'Sarah Johnson', company: 'Sunny Hill Financial', status: 'In Progress', estimatedCommission: 1280.50 },
-    { id: 3, date: '2023-06-20', client: 'Michael Brown', company: 'Impact Health Sharing', status: 'In Review', estimatedCommission: 300.00 },
-  ];
+  const { user } = useAuth();
+
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [pendingCommissions, setPendingCommissions] = useState(0);
+  const [referralsCount, setReferralsCount] = useState(0);
+  const [successfulReferrals, setSuccessfulReferrals] = useState(0);
+  const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([]);
+  const [pendingReferrals, setPendingReferrals] = useState<PendingReferral[]>([]);
+  const [activeReferral, setActiveReferral] = useState<PendingReferral | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data } = await client.models.Referral.list({
+          filter: { userId: { eq: user.id } },
+        });
+
+        const companies: Record<string, string> = {};
+        const getCompanyName = async (id: string) => {
+          if (!companies[id]) {
+            try {
+              const { data: company } = await client.models.Company.get({ id });
+              companies[id] = company?.companyName || id;
+            } catch {
+              companies[id] = id;
+            }
+          }
+          return companies[id];
+        };
+
+        let totalEarn = 0;
+        let pendingComm = 0;
+        let successCount = 0;
+
+        const pending: PendingReferral[] = [];
+        const payments: RecentPayment[] = [];
+
+        for (const r of data) {
+          const companyName = await getCompanyName(r.companyId);
+
+          if (r.paymentStatus === 'PROCESSED') {
+            successCount += 1;
+            totalEarn += r.amount ?? 0;
+            payments.push({
+              id: r.id || '',
+              date: r.processedAt || r.createdAt || '',
+              amount: r.amount || 0,
+              status: 'Paid',
+              company: companyName,
+            });
+          }
+
+          if (
+            r.paymentStatus === 'PENDING' ||
+            r.status === 'IN_PROGRESS' ||
+            r.status === 'IN_REVIEW'
+          ) {
+            pendingComm += r.amount ?? 0;
+            pending.push({
+              id: r.id || '',
+              date: r.createdAt || '',
+              client: r.name,
+              company: companyName,
+              status: r.status?.replace('_', ' ') || 'In Progress',
+              estimatedCommission: r.amount ?? null,
+            });
+          }
+        }
+
+        payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        setTotalEarnings(totalEarn);
+        setPendingCommissions(pendingComm);
+        setReferralsCount(data.length);
+        setSuccessfulReferrals(successCount);
+        setRecentPayments(payments.slice(0, 4));
+        setPendingReferrals(pending.slice(0, 3));
+      } catch (error) {
+        console.error('Failed to load business data', error);
+      }
+    };
+
+    loadData();
+  }, [user]);
 
   const earningsData6Months: EarningsPoint[] = [
     { month: 'Jan', earnings: 2000 },
@@ -62,14 +135,14 @@ const BusinessPage = () => {
   const stats: StatItem[] = [
     {
       label: 'Total Earnings',
-      value: `$${totalEarnings.toLocaleString()}`,
+      value: `$${(totalEarnings || 0).toLocaleString()}`,
       icon: 'DollarSign',
       bgColor: 'bg-blue-100',
       iconColor: 'text-primary',
     },
     {
       label: 'Pending Commissions',
-      value: `$${pendingCommissions.toLocaleString()}`,
+      value: `$${(pendingCommissions || 0).toLocaleString()}`,
       icon: 'Clock',
       bgColor: 'bg-green-100',
       iconColor: 'text-success',
@@ -92,6 +165,18 @@ const BusinessPage = () => {
 
   const handleViewAllReferrals = () => {
     console.log('Navigate to all referrals page');
+  };
+
+  const handleSelectReferral = (referral: PendingReferral) => {
+    setActiveReferral(referral);
+  };
+
+  const handleStatusUpdated = (id: string, newStatus: string) => {
+    setPendingReferrals((prev) =>
+      prev
+        .map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+        .filter((r) => !(r.id === id && newStatus === 'PAID'))
+    );
   };
 
   const handleViewPaymentHistory = () => {
@@ -133,9 +218,10 @@ const BusinessPage = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pending Referrals Component */}
-        <PendingReferralsCard 
+        <PendingReferralsCard
           referrals={pendingReferrals}
           onViewAll={handleViewAllReferrals}
+          onSelect={handleSelectReferral}
         />
         
         {/* Recent Payments Component */}
@@ -151,7 +237,7 @@ const BusinessPage = () => {
           <div className="text-center md:text-left">
             <h2 className="text-xl font-bold text-white">Ready to increase your earnings?</h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Refer clients to our strategic partners and earn commissions.
+              Refer clients to our strategic companies and earn commissions.
             </p>
           </div>
           <div className="mt-6 md:mt-0">
@@ -163,6 +249,12 @@ const BusinessPage = () => {
           </div>
         </div>
       </div>
+      <ReferralDetailsModal
+        referral={activeReferral}
+        isOpen={Boolean(activeReferral)}
+        onClose={() => setActiveReferral(null)}
+        onStatusUpdated={handleStatusUpdated}
+      />
     </div>
   );
 };

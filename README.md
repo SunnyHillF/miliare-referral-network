@@ -1,25 +1,25 @@
-## AWS Amplify React+Vite Starter Template
+# Miliare Referral Network
 
-This repository provides a starter template for creating applications using React+Vite and AWS Amplify, emphasizing easy setup for authentication, API, and database capabilities.
+This monorepo contains the source code for the Miliare Referral Network. The project is built with **AWS Amplify Gen 2** and a React + Vite frontend. Infrastructure that cannot be provisioned with Amplify lives under `infastructure/` as CDK stacks.
 
-## Overview
+## Repository Layout
 
-This template equips you with a foundational React application integrated with AWS Amplify, streamlined for scalability and performance. It is ideal for developers looking to jumpstart their project with pre-configured AWS services like Cognito, AppSync, and DynamoDB.
+- `app_design/` – Early design specifications and prototype code used as a reference for the production app.
+- `apps/frontend-app/` – Active React + Vite application configured with Amplify Gen 2.
+- `infastructure/` – CDK stacks for additional AWS resources.
+- `AGENTS.md` – Guidelines for AI coding agents working in this repository.
 
-## Features
+## Getting Started
 
-- **Authentication**: Setup with Amazon Cognito for secure user authentication.
-- **API**: Ready-to-use GraphQL endpoint with AWS AppSync.
-- **Database**: Real-time database powered by Amazon DynamoDB.
+Install dependencies with pnpm and start the frontend dev server:
 
-## Deploying to AWS
+```bash
+pnpm install
+pnpm run frontend:dev
+```
 
-For detailed instructions on deploying your application, refer to the [deployment section](https://docs.amplify.aws/react/start/quickstart/#deploy-a-fullstack-app-to-aws) of our documentation.
-
-## Security
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+The Amplify backend can be deployed with `pnpm amplify:push` from the repository root.
 
 ## License
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
+This project is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file for details.

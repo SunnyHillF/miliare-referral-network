@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
@@ -61,14 +61,14 @@ const TeamPage = () => {
   const stats: StatItem[] = [
     {
       label: 'Total Earnings',
-      value: `$${totalEarnings.toLocaleString()}`,
+      value: `$${(totalEarnings || 0).toLocaleString()}`,
       icon: 'DollarSign',
       bgColor: 'bg-blue-100',
       iconColor: 'text-primary',
     },
     {
       label: 'Pending Commissions',
-      value: `$${pendingCommissions.toLocaleString()}`,
+      value: `$${(pendingCommissions || 0).toLocaleString()}`,
       icon: 'Clock',
       bgColor: 'bg-green-100',
       iconColor: 'text-success',
@@ -151,7 +151,7 @@ const TeamPage = () => {
           <div className="text-center md:text-left">
             <h2 className="text-xl font-bold text-white">Ready to increase your earnings?</h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Refer clients to our strategic partners and earn commissions.
+              Refer clients to our strategic companies and earn commissions.
             </p>
           </div>
           <div className="mt-6 md:mt-0">

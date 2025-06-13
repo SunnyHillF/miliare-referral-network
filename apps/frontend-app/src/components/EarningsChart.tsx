@@ -82,7 +82,7 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ data }) => {
             },
             callback: function(value: string | number) {
               const num = typeof value === 'number' ? value : parseFloat(value);
-              return '$' + num.toLocaleString();
+              return '$' + (isNaN(num) ? 0 : num).toLocaleString();
             },
           },
         },
@@ -99,7 +99,7 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ data }) => {
           borderWidth: 1,
           callbacks: {
             label: function(context: TooltipItem<'line'>) {
-              return 'Earnings: $' + context.parsed.y.toLocaleString();
+              return 'Earnings: $' + (context.parsed.y || 0).toLocaleString();
             },
           },
         },

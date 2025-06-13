@@ -1,86 +1,129 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { useAuth } from '../contexts/AuthContext';
-import { toast } from '../components/ui/Toaster';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "../components/ui/Toaster";
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../../amplify/data/resource";
 
-// Form validation schema
-const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-  address: z.string().min(5, 'Please enter your full address'),
-  city: z.string().min(2, 'Please enter your city'),
-  state: z.string().min(2, 'Please enter your state'),
-  zipCode: z.string().min(5, 'Please enter a valid ZIP code'),
-  company: z.string().min(1, 'Please select your company'),
-  uplineEVC: z.string().optional(),
-  uplineSMD: z.string().optional(),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one symbol (!@#$%^&*)'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
+// Use guest access for registration page since user isn't signed in yet
+const client = generateClient<Schema>({
+  authMode: "identityPool",
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+// Form validation schema - updated to match Cognito requirements
+const registerSchema = z
+  .object({
+    // Required Cognito attributes
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.string().email("Please enter a valid email address"),
+    phoneNumber: z
+      .string()
+      .min(1, "Phone number is required")
+      .regex(
+        /^\+1[0-9]{10}$/,
+        "Phone number must be in format +1XXXXXXXXXX (e.g., +12345678901)",
+      ),
+    address: z.string().min(5, "Please enter your full address"),
 
-const companies = [
-  { value: 'WFG', label: 'WFG' },
-  { value: 'Sunny Hill Financial', label: 'Sunny Hill Financial' },
-  { value: 'Prime Corporate Services', label: 'Prime Corporate Services' },
-  { value: 'ANCO', label: 'ANCO' },
-  { value: 'Weightless Financial', label: 'Weightless Financial' },
-  { value: 'Summit Business Syndicate', label: 'Summit Business Syndicate' },
-  { value: 'Wellness for the Workforce', label: 'Wellness for the Workforce' },
-  { value: 'Impact Health Sharing', label: 'Impact Health Sharing' },
-  { value: 'Other', label: 'Other' },
-];
+    // Company selection
+    companyId: z.string().min(1, "Please select your company"),
+
+    // Password requirements matching Cognito policy
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const RegisterPage = () => {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showWFGFields, setShowWFGFields] = useState(false);
-  
-  const { register, handleSubmit, watch, formState: { errors }, trigger } = useForm<RegisterFormValues>({
+  const [companies, setCompanies] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [selectedCompany, setSelectedCompany] = useState<
+    Schema["Company"]["type"] | null
+  >(null);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+    trigger,
+  } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      company: '',
-      uplineEVC: '',
-      uplineSMD: '',
-      password: '',
-      confirmPassword: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      companyId: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
-  const company = watch('company');
+  const companyId = watch("companyId");
 
-  React.useEffect(() => {
-    setShowWFGFields(company === 'WFG');
-  }, [company]);
+  // Load companies from DynamoDB
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await client.models.Company.list({
+          filter: { status: { eq: "ACTIVE" } },
+        });
+
+        const companyOptions = (data || []).map((company) => ({
+          value: company.id || "",
+          label: company.companyName || "Unknown Company",
+        }));
+
+        setCompanies(companyOptions);
+      } catch (error) {
+        console.error("Failed to load companies:", error);
+        toast.error("Failed to load companies", "Please refresh the page");
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  // Handle company selection
+  useEffect(() => {
+    if (companyId && companies.length > 0) {
+      const company = companies.find((c) => c.value === companyId);
+      if (company) {
+        // Find the full company data
+        client.models.Company.get({ id: companyId })
+          .then(({ data }) => {
+            setSelectedCompany(data);
+          })
+          .catch(console.error);
+      }
+    }
+  }, [companyId, companies]);
 
   const totalSteps = 3;
 
@@ -89,57 +132,71 @@ const RegisterPage = () => {
 
     switch (step) {
       case 1:
-        fieldsToValidate = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
+        fieldsToValidate = [
+          "firstName",
+          "lastName",
+          "email",
+          "phoneNumber",
+          "address",
+        ];
         break;
       case 2:
-        fieldsToValidate = ['company'];
-        if (showWFGFields) {
-          fieldsToValidate.push('uplineEVC', 'uplineSMD');
-        }
+        fieldsToValidate = ["companyId"];
         break;
       default:
         break;
     }
-    
+
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
-      setStep(prev => Math.min(prev + 1, totalSteps));
+      setStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
-  
+
   const prevStep = () => {
-    setStep(prev => Math.max(prev - 1, 1));
+    setStep((prev) => Math.max(prev - 1, 1));
   };
-  
+
   const onSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
     try {
+      // Get the company name from the selected company
+      const companyName = selectedCompany?.companyName || '';
+      
+      // Register user with proper Cognito attributes
       const completed = await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        company: data.company,
-        uplineEVC: data.uplineEVC,
-        uplineSMD: data.uplineSMD,
+        phoneNumber: data.phoneNumber,
+        address: data.address,
+        company: companyName, // Store company name in custom:company
+        companyId: data.companyId, // Store company ID in custom:companyId
+        activated: true, // Automatically activate new users
         password: data.password,
       });
-      toast.success('Registration successful', 'Your account has been created!');
+
+      toast.success(
+        "Registration successful",
+        "Your account has been created!",
+      );
+
       if (completed) {
-        navigate('/dashboard');
+        navigate("/dashboard");
       } else {
         // Store password temporarily for auto-login after verification
-        sessionStorage.setItem('tempPassword', data.password);
-        toast.info('Check your email to verify your account');
-        navigate('/verify', { state: { email: data.email } });
+        sessionStorage.setItem("tempPassword", data.password);
+        toast.info("Check your email to verify your account");
+        navigate("/verify", { state: { email: data.email } });
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Registration failed', 'Please try again later.');
+      console.error("Registration error:", error);
+      toast.error("Registration failed", "Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -149,78 +206,83 @@ const RegisterPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="First Name"
-                {...register('firstName')}
+                {...register("firstName")}
                 error={errors.firstName?.message}
               />
               <Input
                 label="Last Name"
-                {...register('lastName')}
+                {...register("lastName")}
                 error={errors.lastName?.message}
               />
             </div>
             <Input
               label="Email Address"
               type="email"
-              {...register('email')}
+              {...register("email")}
               error={errors.email?.message}
             />
-            <Input
-              label="Phone Number"
-              type="tel"
-              {...register('phone')}
-              error={errors.phone?.message}
-            />
+            <div className="space-y-1">
+              <Input
+                label="Phone Number"
+                type="tel"
+                placeholder="+12345678901"
+                {...register("phoneNumber")}
+                error={errors.phoneNumber?.message}
+                onChange={(e) => {
+                  // Auto-format phone number
+                  let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+                  if (value.length > 0 && !value.startsWith("1")) {
+                    value = "1" + value; // Add country code if missing
+                  }
+                  if (value.length > 11) {
+                    value = value.slice(0, 11); // Limit to 11 digits
+                  }
+                  const formattedValue = value.length > 0 ? "+" + value : "";
+                  setValue("phoneNumber", formattedValue);
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                Format: +1 followed by 10 digits (e.g., +12345678901)
+              </p>
+            </div>
             <Input
               label="Address"
-              {...register('address')}
+              placeholder="Street address, city, state, ZIP"
+              {...register("address")}
               error={errors.address?.message}
             />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                label="City"
-                {...register('city')}
-                error={errors.city?.message}
-              />
-              <Input
-                label="State"
-                {...register('state')}
-                error={errors.state?.message}
-              />
-              <Input
-                label="ZIP Code"
-                {...register('zipCode')}
-                error={errors.zipCode?.message}
-              />
-            </div>
           </div>
         );
       case 2:
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Company Affiliation</h2>
-            
+            <h2 className="text-xl font-semibold mb-4">Company Information</h2>
+
             <Select
               label="Company"
-              {...register('company')}
+              {...register("companyId")}
               options={companies}
-              error={errors.company?.message}
+              error={errors.companyId?.message}
             />
-            
-            {showWFGFields && (
-              <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-md">
-                <h3 className="font-medium">WFG Information</h3>
-                <Input
-                  label="Name of Direct Upline EVC"
-                  {...register('uplineEVC')}
-                  error={errors.uplineEVC?.message}
-                />
-                <Input
-                  label="Name of Direct Upline SMD"
-                  {...register('uplineSMD')}
-                  error={errors.uplineSMD?.message}
-                />
+
+            {selectedCompany && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-medium text-blue-900">Selected Company</h3>
+                <p className="text-sm text-blue-700">
+                  {selectedCompany.companyName}
+                </p>
+                <p className="text-xs text-blue-600">
+                  {selectedCompany.website}
+                </p>
               </div>
             )}
+
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-700">
+                <strong>Note:</strong> Your team lead and division lead will be
+                assigned by your company administrator after registration.
+              </p>
+            </div>
           </div>
         );
       case 3:
@@ -231,7 +293,7 @@ const RegisterPage = () => {
               <Input
                 label="Password"
                 type="password"
-                {...register('password')}
+                {...register("password")}
                 error={errors.password?.message}
               />
               <div className="text-sm text-gray-600">
@@ -241,27 +303,35 @@ const RegisterPage = () => {
                   <li>One uppercase letter (A-Z)</li>
                   <li>One lowercase letter (a-z)</li>
                   <li>One number (0-9)</li>
-                  <li>One symbol (!@#$%^&*)</li>
                 </ul>
               </div>
             </div>
             <Input
               label="Confirm Password"
               type="password"
-              {...register('confirmPassword')}
+              {...register("confirmPassword")}
               error={errors.confirmPassword?.message}
             />
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>Note:</strong> Your account will be automatically
+                activated and ready to use once registration is complete.
+              </p>
+            </div>
           </div>
         );
       default:
         return null;
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-bold text-gray-900">Create Your Account</h1>
+        <h1 className="text-center text-3xl font-bold text-gray-900">
+          Create Your Account
+        </h1>
         <p className="mt-2 text-center text-gray-600">
           Join the Miliare Referral Network
         </p>
@@ -286,10 +356,10 @@ const RegisterPage = () => {
               ></div>
             </div>
           </div>
-          
+
           <form onSubmit={handleSubmit(onSubmit)}>
             {renderStep()}
-            
+
             <div className="mt-8 flex justify-between">
               {step > 1 ? (
                 <Button
@@ -305,12 +375,12 @@ const RegisterPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                 >
                   Back to Login
                 </Button>
               )}
-              
+
               {step < totalSteps ? (
                 <Button
                   type="button"
@@ -321,11 +391,8 @@ const RegisterPage = () => {
                   <ChevronRight size={16} className="ml-1" />
                 </Button>
               ) : (
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Registering...' : 'Complete Registration'}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Registering..." : "Complete Registration"}
                 </Button>
               )}
             </div>

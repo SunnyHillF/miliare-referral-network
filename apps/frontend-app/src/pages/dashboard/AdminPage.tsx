@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../../amplify/data/resource';
+import type { Schema } from '../../../amplify/data/resource';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../components/ui/Toaster';
-import { invitePartnerAdmin } from '../../utils/invitePartnerAdmin';
+import { inviteCompanyAdmin } from '../../utils/inviteCompanyAdmin';
 
 const client = generateClient<Schema>();
 
-const partnerSchema = z.object({
-  name: z.string().min(1, 'Partner name is required'),
+const companySchema = z.object({
+  companyName: z.string().min(1, 'Company name is required'),
   contactEmail: z.string().email('Valid email required'),
   website: z.string().url('Valid URL required'),
   adminFirstName: z.string().min(1, 'First name required'),
@@ -20,35 +20,58 @@ const partnerSchema = z.object({
   adminEmail: z.string().email('Valid email required'),
 });
 
-type PartnerFormValues = z.infer<typeof partnerSchema>;
+type CompanyFormValues = z.infer<typeof companySchema>;
 
 const AdminPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<PartnerFormValues>({
-    resolver: zodResolver(partnerSchema),
+  const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
   });
 
-  const onSubmit = async (data: PartnerFormValues) => {
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await client.models.Company.list();
+        setCompanies(data || []);
+      } catch (error) {
+        console.error('Failed to load companies', error);
+        toast.error('Failed to load companies');
+      }
+    };
+    fetchCompanies();
+  }, []);
+
+  const onSubmit = async (data: CompanyFormValues) => {
     setIsSubmitting(true);
     try {
-      const { data: partner } = await client.models.Partner.create({
-        name: data.name,
+      // Create company with proper schema fields
+      const { data: company } = await client.models.Company.create({
+        companyName: data.companyName,
         contactEmail: data.contactEmail,
         website: data.website,
         status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      await invitePartnerAdmin({
-        email: data.adminEmail,
-        firstName: data.adminFirstName,
-        lastName: data.adminLastName,
-        partnerId: partner.id,
-      });
+      if (company) {
+        setCompanies((prev) => [...prev, company]);
 
-      toast.success('Partner created', 'Invitation sent to partner admin');
+        // Invite company admin
+        await inviteCompanyAdmin({
+          email: data.adminEmail,
+          firstName: data.adminFirstName,
+          lastName: data.adminLastName,
+          companyId: company.id || '',
+        });
+
+        toast.success('Company created successfully', 'Invitation sent to company admin');
+        reset(); // Clear the form
+      }
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to create partner');
+      console.error('Error creating company:', err);
+      toast.error('Failed to create company', 'Please try again');
     } finally {
       setIsSubmitting(false);
     }
@@ -63,9 +86,9 @@ const AdminPage = () => {
         </p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Create New Partner</h2>
+        <h2 className="text-xl font-semibold mb-4">Create New Company</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input label="Partner Name" {...register('name')} error={errors.name?.message} />
+          <Input label="Company Name" {...register('companyName')} error={errors.companyName?.message} />
           <Input label="Contact Email" {...register('contactEmail')} error={errors.contactEmail?.message} />
           <Input label="Website" {...register('website')} error={errors.website?.message} />
           <hr className="my-4" />
@@ -75,10 +98,39 @@ const AdminPage = () => {
           </div>
           <Input label="Admin Email" {...register('adminEmail')} error={errors.adminEmail?.message} />
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Partner'}
+            {isSubmitting ? 'Creating...' : 'Create Company'}
           </Button>
         </form>
       </div>
+
+      {companies.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+          <h2 className="text-xl font-semibold mb-4">Existing Companies</h2>
+          <div className="space-y-3">
+            {companies.map((company) => (
+              <div key={company.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-medium">{company.companyName}</h3>
+                  <p className="text-sm text-gray-600">{company.contactEmail}</p>
+                  <p className="text-xs text-gray-500">{company.website}</p>
+                </div>
+                <div className="text-right">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    company.status === 'ACTIVE' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {company.status}
+                  </span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Created: {company.createdAt ? new Date(company.createdAt).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
