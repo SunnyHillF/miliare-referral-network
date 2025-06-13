@@ -5,7 +5,7 @@ This repository contains the Miliare Referral Network monorepo.  The design spec
 ## Project Structure
 
 - `app_design/proto-mrn` – Prototype React application which demonstrates the desired UI and component styling.  Use this as the primary visual reference when building the production app.
-- `app_design/miliare-frontend` – Deprecated Next.js implementation.  Although not used directly, it includes useful components and features that should be replicated in the new codebase.  See the `design_docs/AGENTS.md` file in this folder for detailed Tailwind and lucide-react usage rules.
+- `app_design/miliare-frontend` – *Deprecated* Next.js prototype.  It includes useful components and Tailwind examples that should be mirrored in the production app.  See the `design_docs/AGENTS.md` file in this folder for detailed Tailwind and lucide-react usage rules.
 - `apps/frontend-app` – The active Amplify Gen&nbsp;2 frontend using React + Vite.  All MVP features should be implemented here.
 - `infastructure/` – CDK stacks for functionality that Amplify Gen&nbsp;2 cannot support.  Over time the Amplify backend will migrate into `infastructure/miliare-infa-core`.
 - Preserve the Lucide icons exactly as used in `proto-mrn` to maintain the prototype look.
@@ -33,6 +33,6 @@ Lines 12‑36 in `app_design/miliare-frontend/design_docs/AGENTS.md` explain why
 - Rebuild the prototype from `proto-mrn` inside `apps/frontend-app` while preserving the component structure found in `app_design/miliare-frontend`.
 - Migrate Amplify data models and backend logic into CDK stacks under `infastructure/miliare-infa-core`.
 - DocuSign automation is no longer required; remove any remaining placeholder code and references.
-- Seed strategic partner data and replace temporary placeholder components with real models (see `app_design/Implementation_Plan.md`).
+- Seed strategic partner data and replace temporary placeholder components with real models based on the design specifications.
 - Continue to enforce specific icon imports to avoid memory issues.
 
