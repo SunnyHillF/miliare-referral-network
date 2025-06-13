@@ -24,7 +24,7 @@ Multiple items share the same partition key to store metadata, status, and payme
 - `approximateValue` _(number)_ - Estimated value of the referral
 - `userId` _(string)_ - User who submitted the referral
 - `teamLeadId` _(string)_ - Team lead for the submitting user
-- `orgLeadId` _(string)_ - Organization lead for the submitting user
+- `divisionLeadId` _(string)_ - Division lead for the submitting user
 - `splitUserIds` _(list)_ - Additional users to split the referral with
 - `createdAt` _(string)_ - ISO timestamp of creation
 

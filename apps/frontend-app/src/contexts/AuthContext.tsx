@@ -1,7 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
-import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../../amplify/data/resource';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  getCurrentUser,
+  signIn,
+  signOut,
+  signUp,
+  fetchAuthSession,
+  fetchUserAttributes,
+} from "aws-amplify/auth";
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../../amplify/data/resource";
 /* eslint react-refresh/only-export-components: 0 */
 
 type User = {
@@ -14,7 +21,7 @@ type User = {
   company: string;
   groups: string[];
   teamId?: string;
-  orgLeadId?: string;
+  divisionLeadId?: string;
   activated?: boolean;
 };
 
@@ -22,17 +29,23 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<void>;
   logout: () => Promise<void>;
   register: (
-    userData: Omit<User, 'id' | 'groups'> & { password: string }
+    userData: Omit<User, "id" | "groups"> & { password: string },
   ) => Promise<boolean>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,11 +54,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Helper function to create User record in DynamoDB
-  const createUserRecord = async (userData: Omit<User, 'id' | 'groups'>) => {
+  const createUserRecord = async (userData: Omit<User, "id" | "groups">) => {
     try {
       const client = generateClient<Schema>();
       const currentUser = await getCurrentUser();
-      
+
       await client.models.User.create({
         id: currentUser.userId, // Use Cognito user ID
         name: `${userData.firstName} ${userData.lastName}`,
@@ -55,17 +68,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         teamId: userData.teamId || null,
         teamLead: false, // Default to false for new users
         teamLeadId: null,
-        orgLeadId: userData.orgLeadId || null,
+        divisionLeadId: userData.divisionLeadId || null,
         companyId: userData.company,
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
-      
-      console.log('User record created in DynamoDB');
+
+      console.log("User record created in DynamoDB");
     } catch (dbError) {
-      console.error('Failed to create User record in DynamoDB:', dbError);
+      console.error("Failed to create User record in DynamoDB:", dbError);
       // Don't fail the process if DynamoDB creation fails
       throw dbError;
     }
@@ -78,30 +91,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (currentUser && session.tokens) {
         const groups =
-          (session.tokens.idToken?.payload['cognito:groups'] as string[]) || [];
+          (session.tokens.idToken?.payload["cognito:groups"] as string[]) || [];
 
         const attributes = await fetchUserAttributes();
 
         const userData: User = {
           id: currentUser.userId,
-          firstName: attributes.given_name ?? 'User',
-          lastName: attributes.family_name ?? '',
-          email: attributes.email ?? currentUser.signInDetails?.loginId ?? '',
+          firstName: attributes.given_name ?? "User",
+          lastName: attributes.family_name ?? "",
+          email: attributes.email ?? currentUser.signInDetails?.loginId ?? "",
           phoneNumber: attributes.phone_number ?? undefined,
           address: attributes.address ?? undefined,
-          company: attributes['custom:companyId'] ?? 'WFG',
+          company: attributes["custom:companyId"] ?? "WFG",
           groups,
-          teamId: attributes['custom:teamId'] ?? undefined,
-          orgLeadId: attributes['custom:orgLeadId'] ?? undefined,
-          activated: attributes['custom:activated'] === 'true',
+          teamId: attributes["custom:teamId"] ?? undefined,
+          divisionLeadId: attributes["custom:divisionLeadId"] ?? undefined,
+          activated: attributes["custom:activated"] === "true",
         };
-        
+
         setUser(userData);
       }
     } catch (error) {
       // Only log errors that aren't expected "not authenticated" scenarios
-      if (error && typeof error === 'object' && 'name' in error && error.name !== 'UserUnAuthenticatedException') {
-        console.error('Error checking auth status:', error);
+      if (
+        error &&
+        typeof error === "object" &&
+        "name" in error &&
+        error.name !== "UserUnAuthenticatedException"
+      ) {
+        console.error("Error checking auth status:", error);
       }
       setUser(null);
     } finally {
@@ -122,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Store the remember me preference (for UI state)
-      localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
+      localStorage.setItem("rememberMe", rememberMe ? "true" : "false");
 
       const { isSignedIn } = await signIn({
         username: email,
@@ -139,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (
-    userData: Omit<User, 'id' | 'groups'> & { password: string }
+    userData: Omit<User, "id" | "groups"> & { password: string },
   ): Promise<boolean> => {
     setIsLoading(true);
     try {
@@ -154,27 +172,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             phone_number: userData.phoneNumber,
             address: userData.address,
             // Map the selected company to the CompanyId custom attribute in Cognito
-            'custom:companyId': userData.company,
-            'custom:teamId': userData.teamId || '',
-            'custom:orgLeadId': userData.orgLeadId || '',
-            'custom:activated': userData.activated ? 'true' : 'false',
+            "custom:companyId": userData.company,
+            "custom:teamId": userData.teamId || "",
+            "custom:divisionLeadId": userData.divisionLeadId || "",
+            "custom:activated": userData.activated ? "true" : "false",
           },
         },
       });
-      
+
       if (isSignUpComplete) {
         // Auto-sign in after successful registration
         await login(userData.email, userData.password);
-        
+
         // Create User record in DynamoDB after successful login
         await createUserRecord(userData);
-        
+
         // login() will handle setting isLoading(false) via checkAuthStatus
         return true;
       } else {
         // User needs to verify email - not complete yet
         // Store user data for later DynamoDB creation after verification
-        sessionStorage.setItem('pendingUserData', JSON.stringify(userData));
+        sessionStorage.setItem("pendingUserData", JSON.stringify(userData));
         setIsLoading(false);
         return false;
       }
@@ -190,36 +208,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const attributes: Record<string, string> = {};
       if (updates.firstName !== undefined) {
-        attributes['given_name'] = updates.firstName;
+        attributes["given_name"] = updates.firstName;
       }
       if (updates.lastName !== undefined) {
-        attributes['family_name'] = updates.lastName;
+        attributes["family_name"] = updates.lastName;
       }
       if (updates.phoneNumber !== undefined) {
-        attributes['phone_number'] = updates.phoneNumber;
+        attributes["phone_number"] = updates.phoneNumber;
       }
       if (updates.address !== undefined) {
-        attributes['address'] = updates.address;
+        attributes["address"] = updates.address;
       }
       if (updates.company !== undefined) {
-        attributes['custom:companyId'] = updates.company;
+        attributes["custom:companyId"] = updates.company;
       }
       if (updates.teamId !== undefined) {
-        attributes['custom:teamId'] = updates.teamId;
+        attributes["custom:teamId"] = updates.teamId;
       }
-      if (updates.orgLeadId !== undefined) {
-        attributes['custom:orgLeadId'] = updates.orgLeadId;
+      if (updates.divisionLeadId !== undefined) {
+        attributes["custom:divisionLeadId"] = updates.divisionLeadId;
       }
       if (updates.activated !== undefined) {
-        attributes['custom:activated'] = updates.activated ? 'true' : 'false';
+        attributes["custom:activated"] = updates.activated ? "true" : "false";
       }
       if (Object.keys(attributes).length > 0) {
-        const { updateUserAttributes } = await import('aws-amplify/auth');
+        const { updateUserAttributes } = await import("aws-amplify/auth");
         await updateUserAttributes({ userAttributes: attributes });
         await checkAuthStatus();
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -231,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signOut();
       setUser(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -255,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

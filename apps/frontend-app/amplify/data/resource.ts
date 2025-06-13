@@ -15,13 +15,13 @@ export const schema = a.schema({
       compensation: a.customType({
         agentPercentage: a.float(),
         teamLeadPercentage: a.float(),
-        orgLeadPercentage: a.float(),
+        divisionLeadPercentage: a.float(),
         bonusPoolPercentage: a.float(),
         mrnPercentage: a.float(),
         contracterPercentage: a.float(),
       }),
       trainingLinks: a.string().array(),
-      orgId: a.string(),
+      divisionId: a.string(),
       webhookApiKeyHash: a.string(),
       createdAt: a.string().required(),
       updatedAt: a.string(),
@@ -51,7 +51,7 @@ export const schema = a.schema({
       teamId: a.string(),
       teamLead: a.boolean(),
       teamLeadId: a.string(),
-      orgLeadId: a.string(),
+      divisionLeadId: a.string(),
       bankInfoDocument: a.string(),
       taxDocument: a.string(),
       // Company relationship
@@ -66,7 +66,7 @@ export const schema = a.schema({
       allow.owner().to(["create", "read", "update"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("teamLead").to(["read"]),
-      allow.group("orgLead").to(["update", "read"]),
+      allow.group("divisionLead").to(["update", "read"]),
       allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
@@ -103,7 +103,7 @@ export const schema = a.schema({
       user: a.belongsTo("User", "userId"),
       company: a.belongsTo("Company", "companyId"),
       teamLeadId: a.string(),
-      orgLeadId: a.string(),
+      divisionLeadId: a.string(),
       createdAt: a.string().required(),
       updatedAt: a.string(),
     })
@@ -111,7 +111,7 @@ export const schema = a.schema({
       allow.owner().to(["create", "read", "update"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("teamLead").to(["update", "read"]),
-      allow.group("orgLead").to(["update", "read"]),
+      allow.group("divisionLead").to(["update", "read"]),
       allow.authenticated("identityPool").to(["read", "update"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),

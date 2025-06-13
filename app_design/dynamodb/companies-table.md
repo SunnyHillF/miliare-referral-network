@@ -24,13 +24,13 @@ This document outlines the schema for the `Companies` DynamoDB table.
 - `compensation` _(map)_ - Compensation structure:
   - `agentPercentage` _(number)_ - Percentage paid to referring agent
   - `teamLeadPercentage` _(number)_ - Percentage paid to the team lead
-  - `orgLeadPercentage` _(number)_ - Percentage paid to the organization lead
+  - `divisionLeadPercentage` _(number)_ - Percentage paid to the division lead
   - `bonusPoolPercentage` _(number)_ - Percentage going to bonus pool
   - `mrnPercentage` _(number)_ - Percentage retained by MRN
   - `contractorPercentage` _(number)_ - Percentage paid to contractors
 - `trainingLinks` _(list)_ - List of training resource URLs
 - `updatedAt` _(string)_ - ISO timestamp of last update
-- `orgId` _(string)_ - Organization lead responsible for this company (stored on `ORG#<OrgId>#TEAM#<TeamId>` item)
+- `divisionId` _(string)_ - Division lead responsible for this company (stored on `ORG#<OrgId>#TEAM#<TeamId>` item)
 
 ## User Profile Attributes (SK: `USER#<UserId>`)
 
@@ -49,7 +49,7 @@ User records are stored within the Companies table under the same `PK` as their 
 - `teamId` _(string)_ - Team identifier (not all members need to belong to a team)
 - `teamLead` _(boolean)_ - Indicates if user is a team lead (default: false)
 - `teamLeadId` _(string)_ - Direct upline EVC name (required for WFG)
-- `OrgLeadId` _(string)_ - Direct upline SMD name (required for WFG)
+- `DivisionLeadId` _(string)_ - Direct upline SMD name (required for WFG)
 - `bankInfoDocument` _(string)_ - DocuSign envelope ID for bank info form
 - `taxDocument` _(string)_ - DocuSign envelope ID for tax form
 - `createdAt` _(string)_ - ISO timestamp of creation
@@ -57,7 +57,7 @@ User records are stored within the Companies table under the same `PK` as their 
 
 ## Notes
 
-- The Companies table stores business information for organizations collaborating with Miliare.
+- The Companies table stores business information for divisions collaborating with Miliare.
 - All timestamps should be in ISO 8601 format.
 - Compensation percentages should be stored as decimal values (e.g., 0.15 for 15%).
 - The table supports querying companies by status and compensation structure.
