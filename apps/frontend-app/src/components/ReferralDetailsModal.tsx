@@ -43,7 +43,7 @@ const ReferralDetailsModal: React.FC<ReferralDetailsModalProps> = ({
     try {
       await client.models.Referral.update({
         id: String(referral.id),
-        status,
+        status: status as Schema['Referral']['type']['status'],
         ...(status === 'PAID' ? { paymentStatus: 'PENDING' } : {}),
       });
       const label = statusOptions.find((o) => o.value === status)?.label || status;

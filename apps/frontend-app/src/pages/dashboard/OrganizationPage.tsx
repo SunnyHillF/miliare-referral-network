@@ -1,21 +1,12 @@
 import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
 import TeamMembersCard, { TeamMember } from '../../components/TeamMembersCard';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
 
-const iconMap = { RefreshCw };
-
-function generateApiKey() {
-  const array = new Uint32Array(8);
-  crypto.getRandomValues(array);
-  return Array.from(array, (val) => val.toString(16).padStart(8, '0')).join('');
-}
-
 const OrganizationPage = () => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const [period, setPeriod] = useState('Last 6 months');
 
   const [members, setMembers] = useState<TeamMember[]>([
@@ -65,13 +56,6 @@ const OrganizationPage = () => {
     { label: 'Total Referrals', value: '368', icon: 'Users', bgColor: 'bg-purple-100', iconColor: 'text-purple-600' },
     { label: 'Success Rate', value: '78%', icon: 'TrendingUp', bgColor: 'bg-orange-100', iconColor: 'text-orange-600' },
   ];
-
-  const RefreshIcon = iconMap.RefreshCw;
-
-  const handleRegenerate = () => {
-    const key = generateApiKey();
-    setApiKey(key);
-  };
 
   const toggleMemberStatus = (id: number) => {
     setMembers((prev) =>
@@ -134,20 +118,22 @@ const OrganizationPage = () => {
         />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 space-y-4">
-        <p className="text-gray-700">
-          This page is accessible to Company Admins and Site Admins. Manage company settings, company configurations, and referral workflows here.
-        </p>
-        <div>
-          <p className="text-sm text-gray-500">Webhook Endpoint:</p>
-          <code className="text-sm">POST /webhook/referrals/&lt;referralId&gt;</code>
-        </div>
-        <div className="flex items-center space-x-2">
-          <p className="text-sm text-gray-500">API Key:</p>
-          <span className="font-mono text-sm">{apiKey ? apiKey : '********'}</span>
-          <Button size="sm" variant="outline" onClick={handleRegenerate}>
-            <RefreshIcon className="h-4 w-4 mr-1" /> Regenerate
-          </Button>
+      {/* CTA section */}
+      <div className="bg-primary rounded-lg shadow-md overflow-hidden">
+        <div className="px-6 py-8 md:p-8 md:flex md:items-center md:justify-between">
+          <div className="text-center md:text-left">
+            <h2 className="text-xl font-bold text-white">Ready to increase your earnings?</h2>
+            <p className="mt-1 text-primary-foreground text-opacity-90">
+              Refer clients to our strategic companies and earn commissions.
+            </p>
+          </div>
+          <div className="mt-6 md:mt-0">
+            <Link to="/dashboard/refer">
+              <Button variant="outline" className="w-full md:w-auto bg-white text-primary hover:bg-gray-100">
+                Make a Referral
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
