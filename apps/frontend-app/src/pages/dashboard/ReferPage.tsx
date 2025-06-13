@@ -25,6 +25,7 @@ const ReferPage = () => {
     const fetchCompanies = async () => {
       try {
         const { data } = await client.models.Company.list();
+        console.log('Loaded companies:', data);
         setCompanies(data || []);
       } catch (err) {
         console.error('Failed to load companies', err);
@@ -33,20 +34,37 @@ const ReferPage = () => {
     fetchCompanies();
   }, []);
 
+  // Map company names to metadata keys
+  const getCompanyMetaKey = (companyName: string) => {
+    const nameMap: Record<string, string> = {
+      'Sunny Hill Financial': 'sunny-hill',
+      'Prime Corporate Services': 'prime',
+      'ANCO Insurance': 'anco',
+      'Weightless Financial': 'weightless',
+      'Summit Retirement Plans': 'summit',
+      'Wellness for the Workforce': 'wellness',
+      'Impact Health Sharing': 'impact',
+    };
+    return nameMap[companyName] || '';
+  };
+
   const categories = Array.from(
     new Set(
-      companies.map((c) => companyMeta[c.id || '']?.tags || []).flat()
+      companies.map((c) => companyMeta[getCompanyMetaKey(c.companyName || '')]?.tags || []).flat()
     )
   );
 
   const filteredCompanies = companies.filter((company) => {
-    const meta = companyMeta[company.id || ''] || { tags: [] };
+    const metaKey = getCompanyMetaKey(company.companyName || '');
+    const meta = companyMeta[metaKey] || { tags: [] };
     const matchesSearch =
       (company.companyName || '').toLowerCase().includes(search.toLowerCase()) ||
       (company.description || '').toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory ? meta.tags.includes(selectedCategory) : true;
     return matchesSearch && matchesCategory;
   });
+
+  console.log('Filtered companies:', filteredCompanies.length, filteredCompanies);
   
   return (
     <div className="space-y-8">
@@ -96,7 +114,8 @@ const ReferPage = () => {
       {/* Companies grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCompanies.map((company) => {
-          const meta = companyMeta[company.id || ''] || {};
+          const metaKey = getCompanyMetaKey(company.companyName || '');
+          const meta = companyMeta[metaKey] || {};
           return (
           <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">

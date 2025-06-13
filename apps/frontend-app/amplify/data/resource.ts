@@ -28,6 +28,8 @@ export const schema = a.schema({
       // Relationships
       users: a.hasMany("User", "companyId"),
       referrals: a.hasMany("Referral", "companyId"),
+      trainingResources: a.hasMany("TrainingResource", "companyId"),
+      faqItems: a.hasMany("FaqItem", "companyId"),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
