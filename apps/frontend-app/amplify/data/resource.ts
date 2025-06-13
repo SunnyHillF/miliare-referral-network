@@ -35,7 +35,7 @@ export const schema = a.schema({
       allow.guest().to(["read"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["read", "update"]),
-      allow.iam().to(["read"]),
+      allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
@@ -112,7 +112,7 @@ export const schema = a.schema({
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("teamLead").to(["update", "read"]),
       allow.group("orgLead").to(["update", "read"]),
-      allow.iam().to(["read", "update"]),
+      allow.authenticated("identityPool").to(["read", "update"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),

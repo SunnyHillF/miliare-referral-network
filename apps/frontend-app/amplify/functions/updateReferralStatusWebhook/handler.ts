@@ -76,9 +76,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
 
   const hash = crypto.createHash('sha256').update(apiKey.trim()).digest('hex');
 
-  // Generate client with IAM authentication for Lambda execution
+  // Generate client using the API key configured for this backend
   const client = generateClient<Schema>({
-    authMode: 'iam'
+    authMode: 'apiKey',
   });
 
   try {
