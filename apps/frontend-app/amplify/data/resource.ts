@@ -33,7 +33,7 @@ export const schema = a.schema({
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
-      allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("siteAdmin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["read", "update"]),
       allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
