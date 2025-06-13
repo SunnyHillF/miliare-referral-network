@@ -26,7 +26,7 @@ const TeamMembersCard: React.FC<TeamMembersCardProps> = ({
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Members</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Team Leads</h2>
         {onViewAll && (
           <Button variant="outline" size="sm" onClick={onViewAll}>
             View All
