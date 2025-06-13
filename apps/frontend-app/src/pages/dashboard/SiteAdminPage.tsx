@@ -20,32 +20,6 @@ async function hashApiKey(apiKey: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Get webhook API info based on branch
-const getWebhookApiInfo = () => {
-  // Get branch from environment or default to main - consistent with backend
-  const branch = process.env.REACT_APP_AWS_BRANCH || process.env.REACT_APP_BRANCH || 'main';
-  
-  // Determine subdomain based on branch
-  let subdomain = 'api-${branch}';
-  if (branch === 'prod') {
-    subdomain = 'api';
-  } else if (branch === 'main') {
-    subdomain = 'api-stage';
-  } 
-  
-  const customDomain = `${subdomain}.miliarereferral.com`;
-  const baseUrl = `https://${customDomain}`;
-  
-  return {
-    baseUrl,
-    fullEndpoint: `${baseUrl}/webhook/referrals/{referralId}`,
-    customDomain,
-    branch,
-    region: 'us-west-2',
-    apiName: 'referralWebhookApi'
-  };
-};
-
 const SiteAdminPage = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [company, setCompany] = useState<Schema['Company']['type'] | null>(null);
@@ -53,7 +27,6 @@ const SiteAdminPage = () => {
   const [copied, setCopied] = useState(false);
   const [endpointCopied, setEndpointCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [webhookInfo] = useState(getWebhookApiInfo());
 
   const client = generateClient<Schema>();
   const RefreshIcon = RefreshCw;
@@ -132,7 +105,7 @@ const SiteAdminPage = () => {
 
   const handleCopyEndpoint = async () => {
     try {
-      await navigator.clipboard.writeText(webhookInfo.fullEndpoint);
+      await navigator.clipboard.writeText('https://api.miliarereferral.com/webhook/referrals/{referralId}');
       setEndpointCopied(true);
       setTimeout(() => setEndpointCopied(false), 2000);
     } catch (err) {
@@ -177,7 +150,7 @@ const SiteAdminPage = () => {
             <div className={`p-3 rounded border font-mono text-sm break-all ${
               'bg-gray-50'
             }`}>
-              {webhookInfo.fullEndpoint}
+              https://api.miliarereferral.com/webhook/referrals/{'{referralId}'}
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Replace {'{referralId}'} with the actual referral ID when making requests
