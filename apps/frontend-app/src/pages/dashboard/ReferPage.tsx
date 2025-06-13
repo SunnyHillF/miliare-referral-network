@@ -8,7 +8,7 @@ import {
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../../amplify/data/resource';
+import type { Schema } from '../../../amplify/data/resource';
 import { companyMeta } from '../../data/companyMeta';
 import { toast } from '../../components/ui/Toaster';
 import ReferralFormModal from '../../components/ReferralFormModal';
@@ -25,7 +25,7 @@ const ReferPage = () => {
     const fetchCompanies = async () => {
       try {
         const { data } = await client.models.Company.list();
-        setCompanies(data);
+        setCompanies(data || []);
       } catch (err) {
         console.error('Failed to load companies', err);
       }
@@ -35,14 +35,14 @@ const ReferPage = () => {
 
   const categories = Array.from(
     new Set(
-      companies.map((c) => companyMeta[c.id]?.tags || []).flat()
+      companies.map((c) => companyMeta[c.id || '']?.tags || []).flat()
     )
   );
 
   const filteredCompanies = companies.filter((company) => {
-    const meta = companyMeta[company.id] || { tags: [] };
+    const meta = companyMeta[company.id || ''] || { tags: [] };
     const matchesSearch =
-      company.name.toLowerCase().includes(search.toLowerCase()) ||
+      (company.companyName || '').toLowerCase().includes(search.toLowerCase()) ||
       (company.description || '').toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory ? meta.tags.includes(selectedCategory) : true;
     return matchesSearch && matchesCategory;
@@ -96,7 +96,7 @@ const ReferPage = () => {
       {/* Companies grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCompanies.map((company) => {
-          const meta = companyMeta[company.id] || {};
+          const meta = companyMeta[company.id || ''] || {};
           return (
           <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
@@ -110,7 +110,7 @@ const ReferPage = () => {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">{company.companyName}</h3>
                     <p className="text-sm text-gray-500">
                       {(meta.tags || []).join(' • ')}
                     </p>
@@ -153,7 +153,7 @@ const ReferPage = () => {
                 <Button
                   className="w-full flex items-center justify-center"
                   size="sm"
-                  onClick={() => setActiveCompany({ id: company.id, name: company.name })}
+                  onClick={() => setActiveCompany({ id: company.id || '', name: company.companyName || '' })}
                 >
                   <Send className="mr-1 h-4 w-4" />
                   Refer Now
