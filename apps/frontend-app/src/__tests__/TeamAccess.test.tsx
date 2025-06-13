@@ -37,7 +37,7 @@ describe('Team access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: /team/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Team$/i })).toBeInTheDocument();
   });
 
   it('shows Team link for users in admin group', () => {
@@ -58,7 +58,7 @@ describe('Team access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: /team/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Team$/i })).toBeInTheDocument();
   });
 
   it('hides Team link for users without teamLead group', () => {
@@ -79,7 +79,7 @@ describe('Team access', () => {
       </MemoryRouter>
     );
 
-    expect(screen.queryByRole('link', { name: /team/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^Team$/i })).not.toBeInTheDocument();
   });
 
   it('restricts /dashboard/team route when user lacks required groups', () => {
