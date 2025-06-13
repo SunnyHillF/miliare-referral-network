@@ -184,8 +184,17 @@ export async function seedData() {
       }
     }
 
-    // Create test users (Note: These will be created in DynamoDB, but you'll need to create Cognito users separately)
-    // We'll let DynamoDB auto-generate IDs and then update referrals with the actual IDs
+    // Get Sunny Hill Financial as the primary company for all users and referrals
+    const sunnyHillFinancial = createdCompanies.find(c => c.companyName === "Sunny Hill Financial");
+    if (!sunnyHillFinancial || !sunnyHillFinancial.id) {
+      throw new Error("Sunny Hill Financial company not created or missing ID - cannot proceed with user/referral seeding");
+    }
+
+    const sunnyHillCompanyId = sunnyHillFinancial.id; // Extract ID to ensure it's non-null
+    console.log(`🎯 All users and referrals will belong to: ${sunnyHillFinancial.companyName} (ID: ${sunnyHillCompanyId})`);
+
+    // Create test users - ALL belong to Sunny Hill Financial
+    // Note: These will be created in DynamoDB, Cognito users need to be created separately with matching IDs
     const users = [
       {
         name: "John Admin",
@@ -196,7 +205,7 @@ export async function seedData() {
         teamLead: false,
         teamLeadId: null,
         divisionLeadId: null,
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
@@ -211,7 +220,7 @@ export async function seedData() {
         teamLead: false,
         teamLeadId: null,
         divisionLeadId: null,
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
@@ -226,7 +235,7 @@ export async function seedData() {
         teamLead: true,
         teamLeadId: null,
         divisionLeadId: null,
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
@@ -241,7 +250,22 @@ export async function seedData() {
         teamLead: true,
         teamLeadId: null,
         divisionLeadId: null,
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
+        bankInfoDocument: null,
+        taxDocument: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        name: "Site Admin",
+        email: "siteadmin@test.com",
+        phone: "+1234567894",
+        address: "999 Site Admin Plaza, Admin City, AC 12349",
+        teamId: "TEAM-ADMIN-001",
+        teamLead: false,
+        teamLeadId: null,
+        divisionLeadId: null,
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         bankInfoDocument: null,
         taxDocument: null,
         createdAt: new Date().toISOString(),
@@ -255,14 +279,14 @@ export async function seedData() {
       const { data: user } = await client.models.User.create(userData);
       if (user) {
         createdUsers.push(user);
-        console.log(`✅ Created user: ${user.name} (${user.email})`);
+        console.log(`✅ Created user: ${user.name} (${user.email}) - Company: ${sunnyHillFinancial.companyName}`);
       }
     }
 
-    // Training resources for each company
+    // Training resources for Sunny Hill Financial
     const trainingResources = [
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId,
         title: "Getting Started Guide",
         type: "document" as const,
         url: "https://sunnyhillfinancial.com/training/start",
@@ -271,8 +295,8 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
-        title: "Intro Video",
+        companyId: sunnyHillCompanyId,
+        title: "Financial Planning Intro Video",
         type: "video" as const,
         url: "https://sunnyhillfinancial.com/training/intro",
         duration: "5:30",
@@ -280,20 +304,20 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[1]?.id || "default-company-id",
-        title: "Business Formation Basics",
+        companyId: sunnyHillCompanyId,
+        title: "Investment Basics",
         type: "document" as const,
-        url: "https://www.primecorporateservices.com/training/business-basics",
-        duration: "8 min",
+        url: "https://sunnyhillfinancial.com/training/investment-basics",
+        duration: "15 min",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[1]?.id || "default-company-id",
-        title: "Prime Services Overview",
+        companyId: sunnyHillCompanyId,
+        title: "Retirement Planning Overview",
         type: "video" as const,
-        url: "https://www.primecorporateservices.com/training/overview",
-        duration: "6:00",
+        url: "https://sunnyhillfinancial.com/training/retirement-overview",
+        duration: "8:45",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -302,23 +326,32 @@ export async function seedData() {
     console.log("🎬 Creating training resources...");
     for (const res of trainingResources) {
       await client.models.TrainingResource.create(res);
+      console.log(`✅ Created training resource: ${res.title}`);
     }
 
-    // FAQ items for companies
+    // FAQ items for Sunny Hill Financial
     const faqItems = [
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
-        question: "What services does Sunny Hill provide?",
+        companyId: sunnyHillCompanyId,
+        question: "What services does Sunny Hill Financial provide?",
         answer:
-          "Sunny Hill Financial offers comprehensive planning, investment, and retirement services.",
+          "Sunny Hill Financial offers comprehensive financial planning, investment management, and retirement planning services to help clients achieve their financial goals.",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[1]?.id || "default-company-id",
-        question: "How are Prime Corporate Services commissions paid?",
+        companyId: sunnyHillCompanyId,
+        question: "How are commissions calculated and paid?",
         answer:
-          "Commissions are calculated on each service package and paid monthly through MRN.",
+          "Commissions are calculated based on the value of the financial products sold and are paid monthly through the MRN platform. Agent commission is 45%, with additional percentages for team leads and division leads.",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        companyId: sunnyHillCompanyId,
+        question: "What training resources are available?",
+        answer:
+          "We provide comprehensive training materials including video tutorials, documentation, and hands-on training sessions covering financial planning, investment basics, and sales techniques.",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -327,12 +360,13 @@ export async function seedData() {
     console.log("❓ Creating FAQ items...");
     for (const faq of faqItems) {
       await client.models.FaqItem.create(faq);
+      console.log(`✅ Created FAQ: ${faq.question}`);
     }
 
-    // Create sample referrals across different companies
+    // Create sample referrals - ALL belong to Sunny Hill Financial
     const referrals = [
       {
-        companyId: createdCompanies[0]?.id || "default-company-id", // Sunny Hill Financial
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "Robert Johnson",
         email: "robert.johnson@email.com",
         phoneNumber: "+1555123456",
@@ -345,15 +379,15 @@ export async function seedData() {
           "Interested in comprehensive retirement planning and investment portfolio management",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "Emily Davis",
         email: "emily.davis@email.com",
         phoneNumber: "+1555123457",
@@ -363,18 +397,18 @@ export async function seedData() {
           "fallback-agent-id",
         status: "IN_REVIEW" as const,
         notes:
-          "Small business owner looking for tax preparation and bookkeeping services",
+          "Small business owner looking for financial planning and retirement services",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "Michael Brown",
         email: "michael.brown@email.com",
         phoneNumber: "+1555123458",
@@ -384,7 +418,7 @@ export async function seedData() {
           "fallback-teamlead-id",
         status: "PAID" as const,
         notes:
-          "Large corporation needing comprehensive employee benefits package",
+          "Large corporation needing comprehensive employee benefits and retirement planning",
         amount: 6000.0,
         type: "COMMISSION" as const,
         paymentType: "COMMISSION" as const,
@@ -393,35 +427,35 @@ export async function seedData() {
         processedAt: new Date().toISOString(),
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "Sarah Wilson",
         email: "sarah.wilson@email.com",
         phoneNumber: "+1555123459",
-        approximateValue: 15000.0,
+        approximateValue: 25000.0,
         userId:
           createdUsers.find((u) => u.email === "agent@test.com")?.id ||
           "fallback-agent-id",
         status: "IN_PROGRESS" as const,
-        notes: "Needs debt consolidation and credit repair services",
+        notes: "Young professional interested in investment planning and financial education",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "David Martinez",
         email: "david.martinez@email.com",
         phoneNumber: "+1555123460",
@@ -439,15 +473,15 @@ export async function seedData() {
         processedAt: new Date().toISOString(),
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "Jennifer Lee",
         email: "jennifer.lee@email.com",
         phoneNumber: "+1555123461",
@@ -457,73 +491,73 @@ export async function seedData() {
           "fallback-agent-id",
         status: "IN_REVIEW" as const,
         notes:
-          "Family of 4 interested in health sharing plan as alternative to traditional insurance",
+          "Family of 4 interested in comprehensive financial planning and college savings plans",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
         name: "John Smith",
         email: "john.smith@email.com",
         phoneNumber: "+1555123462",
-        approximateValue: 0,
+        approximateValue: 50000.0,
         userId:
           createdUsers.find((u) => u.email === "agent@test.com")?.id ||
           "fallback-agent-id",
         status: "IN_PROGRESS" as const,
-        notes: "Interested in business services",
+        notes: "Self-employed individual seeking retirement planning and tax-advantaged investment options",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
-        name: "Sarah Johnson",
-        email: "sarah.johnson@email.com",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
+        name: "Lisa Thompson",
+        email: "lisa.thompson@email.com",
         phoneNumber: "+1555123463",
-        approximateValue: 0,
+        approximateValue: 75000.0,
         userId:
           createdUsers.find((u) => u.email === "agent@test.com")?.id ||
           "fallback-agent-id",
         status: "IN_PROGRESS" as const,
-        notes: "Looking for financial planning services",
+        notes: "Recent widow needing comprehensive financial planning and estate management",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
-          "fallback-teamlead-id",
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[0]?.id || "default-company-id",
-        name: "Michael Brown",
-        email: "michael.brown2@email.com",
+        companyId: sunnyHillCompanyId, // Explicitly Sunny Hill Financial
+        name: "Mark Rodriguez",
+        email: "mark.rodriguez@email.com",
         phoneNumber: "+1555123464",
-        approximateValue: 0,
+        approximateValue: 90000.0,
         userId:
-          createdUsers.find((u) => u.email === "agent@test.com")?.id ||
-          "fallback-agent-id",
-        status: "IN_REVIEW" as const,
-        notes: "Follow up about health sharing options",
-        teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
+        status: "IN_REVIEW" as const,
+        notes: "Tech startup founder looking for business retirement plans and personal wealth management",
+        teamLeadId:
+          createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
+          null,
         divisionLeadId:
           createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
-          "fallback-divisionlead-id",
+          null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -535,7 +569,7 @@ export async function seedData() {
         await client.models.Referral.create(referralData);
       if (referral) {
         console.log(
-          `✅ Created referral: ${referral.name} - ${referral.status}`,
+          `✅ Created referral: ${referral.name} - ${referral.status} (Company: ${sunnyHillFinancial.companyName})`,
         );
       }
     }
@@ -546,45 +580,135 @@ export async function seedData() {
       console.log(`${index + 1}. ${company.companyName} (ID: ${company.id})`);
     });
 
-    console.log("\n📝 Test Accounts Created:");
+    console.log("\n📝 Test Accounts to Create in Cognito:");
     console.log(
       "┌─────────────────────────────────────────────────────────────┐",
     );
     console.log(
-      "│ NOTE: You need to create these Cognito users manually:     │",
+      "│ 🔐 Create these Cognito users with proper attributes:      │",
     );
     console.log(
       "├─────────────────────────────────────────────────────────────┤",
     );
     console.log(
-      "│ Email: admin@test.com     | Role: Admin                     │",
+      "│ Email: admin@test.com                                       │",
     );
     console.log(
-      "│ Email: agent@test.com     | Role: Agent                     │",
+      "│ ├─ Groups: admin                                            │",
     );
     console.log(
-      "│ Email: teamlead@test.com  | Role: Team Lead                 │",
+      "│ ├─ custom:company: Sunny Hill Financial                    │",
     );
     console.log(
-      "│ Email: divisionlead@test.com   | Role: Division Lead         │",
+      `│ ├─ custom:companyId: ${sunnyHillCompanyId.padEnd(28)} │`,
+    );
+    console.log(
+      "│ └─ custom:activated: true                                   │",
     );
     console.log(
       "├─────────────────────────────────────────────────────────────┤",
     );
     console.log(
-      "│ Password: TempPass123!    | (for all test accounts)        │",
+      "│ Email: agent@test.com                                       │",
     );
     console.log(
-      `│ Primary Company: ${createdCompanies[0]?.companyName || "Sunny Hill Financial"}                    │`,
+      "│ ├─ Groups: (none - regular agent)                          │",
     );
     console.log(
-      "│ Company ID: " +
-        (createdCompanies[0]?.id || "See output above").padEnd(43) +
-        "│",
+      "│ ├─ custom:company: Sunny Hill Financial                    │",
+    );
+    console.log(
+      `│ ├─ custom:companyId: ${sunnyHillCompanyId.padEnd(28)} │`,
+    );
+    console.log(
+      "│ └─ custom:activated: true                                   │",
+    );
+    console.log(
+      "├─────────────────────────────────────────────────────────────┤",
+    );
+    console.log(
+      "│ Email: teamlead@test.com                                    │",
+    );
+    console.log(
+      "│ ├─ Groups: teamLead                                         │",
+    );
+    console.log(
+      "│ ├─ custom:company: Sunny Hill Financial                    │",
+    );
+    console.log(
+      `│ ├─ custom:companyId: ${sunnyHillCompanyId.padEnd(28)} │`,
+    );
+    console.log(
+      "│ └─ custom:activated: true                                   │",
+    );
+    console.log(
+      "├─────────────────────────────────────────────────────────────┤",
+    );
+    console.log(
+      "│ Email: divisionlead@test.com                                │",
+    );
+    console.log(
+      "│ ├─ Groups: divisionLead                                     │",
+    );
+    console.log(
+      "│ ├─ custom:company: Sunny Hill Financial                    │",
+    );
+    console.log(
+      `│ ├─ custom:companyId: ${sunnyHillCompanyId.padEnd(28)} │`,
+    );
+    console.log(
+      "│ └─ custom:activated: true                                   │",
+    );
+    console.log(
+      "├─────────────────────────────────────────────────────────────┤",
+    );
+    console.log(
+      "│ Email: siteadmin@test.com                                   │",
+    );
+    console.log(
+      "│ ├─ Groups: siteAdmin                                        │",
+    );
+    console.log(
+      "│ ├─ custom:company: Sunny Hill Financial                    │",
+    );
+    console.log(
+      `│ ├─ custom:companyId: ${sunnyHillCompanyId.padEnd(28)} │`,
+    );
+    console.log(
+      "│ └─ custom:activated: true                                   │",
+    );
+    console.log(
+      "├─────────────────────────────────────────────────────────────┤",
+    );
+    console.log(
+      "│ 📋 Standard Attributes for All Users:                      │",
+    );
+    console.log(
+      "│ ├─ given_name: (First name from above)                     │",
+    );
+    console.log(
+      "│ ├─ family_name: (Last name from above)                     │",
+    );
+    console.log(
+      "│ ├─ phone_number: (Phone from above)                        │",
+    );
+    console.log(
+      "│ ├─ address: (Address from above)                           │",
+    );
+    console.log(
+      "│ └─ Password: TempPass123!                                   │",
     );
     console.log(
       "└─────────────────────────────────────────────────────────────┘",
     );
+
+    console.log(`\n📊 Summary:`);
+    console.log(`├─ ${createdCompanies.length} companies created`);
+    console.log(`├─ ${createdUsers.length} users created (all in ${sunnyHillFinancial.companyName})`);
+    console.log(`├─ ${trainingResources.length} training resources created`);
+    console.log(`├─ ${faqItems.length} FAQ items created`);
+    console.log(`└─ ${referrals.length} referrals created (all in ${sunnyHillFinancial.companyName})`);
+
   } catch (error) {
     console.error("❌ Error seeding data:", error);
     throw error;
