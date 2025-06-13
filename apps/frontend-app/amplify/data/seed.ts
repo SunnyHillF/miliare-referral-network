@@ -22,7 +22,7 @@ export async function seedData() {
         compensation: {
           agentPercentage: 45.0,
           teamLeadPercentage: 8.0,
-          orgLeadPercentage: 5.0,
+          divisionLeadPercentage: 5.0,
           bonusPoolPercentage: 15.0,
           mrnPercentage: 20.0,
           contracterPercentage: 7.0,
@@ -31,7 +31,7 @@ export async function seedData() {
           "https://sunnyhillfinancial.com/training/financial-planning",
           "https://sunnyhillfinancial.com/training/investment-basics",
         ],
-        orgId: "ORG-SUNNY-001",
+        divisionId: "ORG-SUNNY-001",
         webhookApiKeyHash: "test-webhook-hash-sunny",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -46,7 +46,7 @@ export async function seedData() {
         compensation: {
           agentPercentage: 50.0,
           teamLeadPercentage: 10.0,
-          orgLeadPercentage: 6.0,
+          divisionLeadPercentage: 6.0,
           bonusPoolPercentage: 12.0,
           mrnPercentage: 18.0,
           contracterPercentage: 4.0,
@@ -55,7 +55,7 @@ export async function seedData() {
           "https://www.primecorporateservices.com/training/business-services",
           "https://www.primecorporateservices.com/training/tax-preparation",
         ],
-        orgId: "ORG-PRIME-002",
+        divisionId: "ORG-PRIME-002",
         webhookApiKeyHash: "test-webhook-hash-prime",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -70,13 +70,13 @@ export async function seedData() {
         compensation: {
           agentPercentage: 48.0,
           teamLeadPercentage: 9.0,
-          orgLeadPercentage: 5.5,
+          divisionLeadPercentage: 5.5,
           bonusPoolPercentage: 20.0,
           mrnPercentage: 15.0,
           contracterPercentage: 2.5,
         },
         trainingLinks: ["https://www.anco.com/training/insurance-basics"],
-        orgId: "ORG-ANCO-003",
+        divisionId: "ORG-ANCO-003",
         webhookApiKeyHash: "test-webhook-hash-anco",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -91,7 +91,7 @@ export async function seedData() {
         compensation: {
           agentPercentage: 42.0,
           teamLeadPercentage: 12.0,
-          orgLeadPercentage: 8.0,
+          divisionLeadPercentage: 8.0,
           bonusPoolPercentage: 18.0,
           mrnPercentage: 15.0,
           contracterPercentage: 5.0,
@@ -99,7 +99,7 @@ export async function seedData() {
         trainingLinks: [
           "https://weightlessfinancial.com/training/debt-resolution",
         ],
-        orgId: "ORG-WEIGHTLESS-004",
+        divisionId: "ORG-WEIGHTLESS-004",
         webhookApiKeyHash: "test-webhook-hash-weightless",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -113,7 +113,7 @@ export async function seedData() {
         compensation: {
           agentPercentage: 52.0,
           teamLeadPercentage: 12.0,
-          orgLeadPercentage: 6.0,
+          divisionLeadPercentage: 6.0,
           bonusPoolPercentage: 25.0,
           mrnPercentage: 20.0,
           contracterPercentage: 5.0,
@@ -122,7 +122,7 @@ export async function seedData() {
           "https://summitretirement.com/training/401k-basics",
           "https://summitretirement.com/training/employee-benefits",
         ],
-        orgId: "ORG-SUMMIT-005",
+        divisionId: "ORG-SUMMIT-005",
         webhookApiKeyHash: "test-webhook-hash-summit",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -137,13 +137,13 @@ export async function seedData() {
         compensation: {
           agentPercentage: 40.0,
           teamLeadPercentage: 10.0,
-          orgLeadPercentage: 7.0,
+          divisionLeadPercentage: 7.0,
           bonusPoolPercentage: 20.0,
           mrnPercentage: 18.0,
           contracterPercentage: 5.0,
         },
         trainingLinks: [],
-        orgId: "ORG-WELLNESS-006",
+        divisionId: "ORG-WELLNESS-006",
         webhookApiKeyHash: "test-webhook-hash-wellness",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -158,7 +158,7 @@ export async function seedData() {
         compensation: {
           agentPercentage: 45.0,
           teamLeadPercentage: 8.0,
-          orgLeadPercentage: 5.0,
+          divisionLeadPercentage: 5.0,
           bonusPoolPercentage: 22.0,
           mrnPercentage: 15.0,
           contracterPercentage: 5.0,
@@ -167,7 +167,7 @@ export async function seedData() {
           "https://www.impacthealthsharing.com/training/health-sharing-basics",
           "https://www.impacthealthsharing.com/training/medical-cost-sharing",
         ],
-        orgId: "ORG-IMPACT-007",
+        divisionId: "ORG-IMPACT-007",
         webhookApiKeyHash: "test-webhook-hash-impact",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -195,7 +195,7 @@ export async function seedData() {
         teamId: "TEAM-ADMIN-001",
         teamLead: false,
         teamLeadId: null,
-        orgLeadId: null,
+        divisionLeadId: null,
         companyId: createdCompanies[0]?.id || "default-company-id",
         bankInfoDocument: null,
         taxDocument: null,
@@ -210,7 +210,7 @@ export async function seedData() {
         teamId: "TEAM-SALES-001",
         teamLead: false,
         teamLeadId: null,
-        orgLeadId: null,
+        divisionLeadId: null,
         companyId: createdCompanies[0]?.id || "default-company-id",
         bankInfoDocument: null,
         taxDocument: null,
@@ -225,7 +225,7 @@ export async function seedData() {
         teamId: "TEAM-SALES-001",
         teamLead: true,
         teamLeadId: null,
-        orgLeadId: null,
+        divisionLeadId: null,
         companyId: createdCompanies[0]?.id || "default-company-id",
         bankInfoDocument: null,
         taxDocument: null,
@@ -233,14 +233,14 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        name: "Sarah OrgLead",
-        email: "orglead@test.com",
+        name: "Sarah DivisionLead",
+        email: "divisionlead@test.com",
         phone: "+1234567893",
-        address: "321 Organization Blvd, Org City, OC 12348",
+        address: "321 Division Blvd, Div City, DC 12348",
         teamId: "TEAM-LEADERSHIP-001",
         teamLead: true,
         teamLeadId: null,
-        orgLeadId: null,
+        divisionLeadId: null,
         companyId: createdCompanies[0]?.id || "default-company-id",
         bankInfoDocument: null,
         taxDocument: null,
@@ -346,9 +346,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -367,9 +367,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -394,9 +394,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -414,9 +414,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -440,9 +440,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -461,9 +461,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -481,9 +481,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -501,9 +501,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -521,9 +521,9 @@ export async function seedData() {
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",
-        orgLeadId:
-          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
-          "fallback-orglead-id",
+        divisionLeadId:
+          createdUsers.find((u) => u.email === "divisionlead@test.com")?.id ||
+          "fallback-divisionlead-id",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -566,7 +566,7 @@ export async function seedData() {
       "│ Email: teamlead@test.com  | Role: Team Lead                 │",
     );
     console.log(
-      "│ Email: orglead@test.com   | Role: Organization Lead         │",
+      "│ Email: divisionlead@test.com   | Role: Division Lead         │",
     );
     console.log(
       "├─────────────────────────────────────────────────────────────┤",

@@ -11,6 +11,7 @@ This guide will help you set up test data and user accounts for development.
 Before running the seed script, you need to get your Amplify configuration:
 
 #### Option A: From Amplify Console (Recommended)
+
 1. Go to [AWS Amplify Console](https://console.aws.amazon.com/amplify/)
 2. Select your app
 3. Go to "Backend environments" tab
@@ -19,6 +20,7 @@ Before running the seed script, you need to get your Amplify configuration:
 6. Save the file as `amplify_outputs.json` in your `apps/frontend-app/` directory
 
 **Important**: The file structure should look like this:
+
 ```
 miliare-referral-network/
 ├── apps/
@@ -30,7 +32,9 @@ miliare-referral-network/
 ```
 
 #### Option B: From Local Development
+
 If you've been developing locally with `npx ampx sandbox`:
+
 ```bash
 # From monorepo root - the file should already exist in your frontend-app directory
 ls apps/frontend-app/amplify_outputs.json
@@ -75,12 +79,12 @@ Since Cognito users must be created separately, you have two options:
 
 **Test Accounts to Create:**
 
-| Email | Temporary Password | Role | Custom Attributes |
-|-------|-------------------|------|-------------------|
-| `admin@test.com` | `TempPass123!` | Admin | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
-| `agent@test.com` | `TempPass123!` | Agent | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
-| `teamlead@test.com` | `TempPass123!` | Team Lead | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
-| `orglead@test.com` | `TempPass123!` | Org Lead | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
+| Email                   | Temporary Password | Role          | Custom Attributes                                                           |
+| ----------------------- | ------------------ | ------------- | --------------------------------------------------------------------------- |
+| `admin@test.com`        | `TempPass123!`     | Admin         | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
+| `agent@test.com`        | `TempPass123!`     | Agent         | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
+| `teamlead@test.com`     | `TempPass123!`     | Team Lead     | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
+| `divisionlead@test.com` | `TempPass123!`     | Division Lead | `custom:companyId` = (Sunny Hill Financial ID), `custom:activated` = `true` |
 
 #### Option B: Use AWS CLI
 
@@ -114,11 +118,11 @@ aws cognito-idp admin-create-user \
   --temporary-password "TempPass123!" \
   --message-action SUPPRESS
 
-# Create org lead user
+# Create division lead user
 aws cognito-idp admin-create-user \
   --user-pool-id $USER_POOL_ID \
-  --username "orglead@test.com" \
-  --user-attributes Name=email,Value="orglead@test.com" Name=given_name,Value="Sarah" Name=family_name,Value="OrgLead" Name=phone_number,Value="+1234567893" Name=address,Value="321 Organization Blvd, Org City, OC 12348" Name="custom:companyId",Value="$COMPANY_ID" Name="custom:activated",Value="true" \
+  --username "divisionlead@test.com" \
+  --user-attributes Name=email,Value="divisionlead@test.com" Name=given_name,Value="Sarah" Name=family_name,Value="DivisionLead" Name=phone_number,Value="+1234567893" Name=address,Value="321 Division Blvd, Div City, DC 12348" Name="custom:companyId",Value="$COMPANY_ID" Name="custom:activated",Value="true" \
   --temporary-password "TempPass123!" \
   --message-action SUPPRESS
 ```
@@ -128,29 +132,32 @@ aws cognito-idp admin-create-user \
 After creating the Cognito users, assign them to the appropriate groups:
 
 #### Using AWS Console:
+
 1. Go to your User Pool → Groups
 2. Create these groups if they don't exist:
    - `admin`
-   - `companyAdmin` 
+   - `companyAdmin`
    - `teamLead`
-   - `orgLead`
+   - `divisionLead`
 3. Go to Users tab, click on each user, and add them to groups:
    - `admin@test.com` → `admin` group
    - `agent@test.com` → (no groups needed)
    - `teamlead@test.com` → `teamLead` group
-   - `orglead@test.com` → `orgLead` group
+   - `divisionlead@test.com` → `divisionLead` group
 
 #### Using AWS CLI:
+
 ```bash
 # Add users to groups
 aws cognito-idp admin-add-user-to-group --user-pool-id $USER_POOL_ID --username "admin@test.com" --group-name "admin"
 aws cognito-idp admin-add-user-to-group --user-pool-id $USER_POOL_ID --username "teamlead@test.com" --group-name "teamLead"
-aws cognito-idp admin-add-user-to-group --user-pool-id $USER_POOL_ID --username "orglead@test.com" --group-name "orgLead"
+aws cognito-idp admin-add-user-to-group --user-pool-id $USER_POOL_ID --username "divisionlead@test.com" --group-name "divisionLead"
 ```
 
 ## 🧪 Test Data Created
 
 ### Companies:
+
 - **Sunny Hill Financial** - Financial planning, investment, and retirement services (Primary test company)
 - **Prime Corporate Services** - Business services, tax preparation, bookkeeping, estate planning
 - **ANCO Insurance** - Insurance solutions, employee benefits, business insurance
@@ -160,12 +167,14 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $USER_POOL_ID --username 
 - **Impact Health Sharing** - Health sharing and healthcare alternative solutions
 
 ### Users:
+
 - **John Admin** (`admin@test.com`) - System administrator
 - **Jane Agent** (`agent@test.com`) - Regular agent
 - **Mike TeamLead** (`teamlead@test.com`) - Team leader
-- **Sarah OrgLead** (`orglead@test.com`) - Organization leader
+- **Sarah DivisionLead** (`divisionlead@test.com`) - Division leader
 
 ### Sample Referrals:
+
 - **Robert Johnson** (Sunny Hill Financial) - IN_PROGRESS ($85,000) - Retirement planning
 - **Emily Davis** (Prime Corporate Services) - IN_REVIEW ($45,000) - Business services
 - **Michael Brown** (ANCO Insurance) - PAID ($125,000) - Employee benefits
@@ -192,21 +201,25 @@ After completing these steps, you can:
 ## 🔧 Troubleshooting
 
 ### If amplify_outputs.json is missing:
+
 - **From Console**: Go to Amplify Console → Your App → Backend environments → Download amplify_outputs.json
 - **From CLI**: Run `npx ampx generate outputs --app-id YOUR_APP_ID --branch main` (from the frontend-app directory)
 - **File Location**: Must be placed at `apps/frontend-app/amplify_outputs.json` (not in subdirectories)
 - **File Format**: Should be a JSON file containing your backend configuration
 
 ### If seed data fails:
+
 - Make sure your deployment completed successfully
 - **Check that `amplify_outputs.json` exists in the correct location**:
+
   ```bash
   # From monorepo root
   ls apps/frontend-app/amplify_outputs.json
-  
+
   # Or from frontend-app directory
   cd apps/frontend-app && ls amplify_outputs.json
   ```
+
 - **Verify your AWS credentials are configured for the 'ratediver' profile**:
   ```bash
   aws configure list --profile ratediver
@@ -220,12 +233,14 @@ After completing these steps, you can:
 - **If you see "NoValidAuthTokens" or "No federated jwt"**: The schema needs to be deployed with API key permissions. Redeploy with `npx ampx deploy`
 
 ### If login fails:
+
 - Verify the Cognito user was created with correct email
 - Check that custom attributes are set correctly
 - Ensure the user is in the right group
 - Try resetting the password in AWS Console
 
 ### If permissions are wrong:
+
 - Double-check user group assignments
 - Verify the `custom:activated` attribute is set to `true`
-- Check that `custom:companyId` matches a real company ID from the seed data 
+- Check that `custom:companyId` matches a real company ID from the seed data

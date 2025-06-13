@@ -1,4 +1,4 @@
-import { defineAuth } from '@aws-amplify/backend';
+import { defineAuth } from "@aws-amplify/backend";
 
 /**
  * Define and configure your auth resource for Miliare
@@ -9,11 +9,12 @@ export const auth = defineAuth({
     email: {
       verificationEmailStyle: "CODE",
       verificationEmailSubject: "Verify your Miliare account",
-      verificationEmailBody: (createCode) => `Welcome to Miliare! Use this code to confirm your account: ${createCode()}`,
+      verificationEmailBody: (createCode) =>
+        `Welcome to Miliare! Use this code to confirm your account: ${createCode()}`,
     },
   },
   // User pool groups used throughout the app for authorization
-  groups: ["admin", "teamLead", "orgLead", "companyAdmin", "siteAdmin"],
+  groups: ["admin", "teamLead", "divisionLead", "companyAdmin", "siteAdmin"],
   userAttributes: {
     // Standard attributes
     email: {
@@ -37,24 +38,24 @@ export const auth = defineAuth({
       mutable: true,
     },
     // Custom attributes for Miliare business domain
-    'custom:company': {
-      dataType: 'String',
+    "custom:company": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:companyId': {
-      dataType: 'String',
+    "custom:companyId": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:teamId': {
-      dataType: 'String',
+    "custom:teamId": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:orgLeadId': {
-      dataType: 'String',
+    "custom:divisionLeadId": {
+      dataType: "String",
       mutable: true,
     },
-    'custom:activated': {
-      dataType: 'Boolean',
+    "custom:activated": {
+      dataType: "Boolean",
       mutable: true,
     },
   },

@@ -83,7 +83,7 @@ const VerifyEmailPage: React.FC = () => {
               teamId: pendingUserData.teamId || null,
               teamLead: false, // Default to false for new users
               teamLeadId: null,
-              orgLeadId: pendingUserData.orgLeadId || null,
+              divisionLeadId: pendingUserData.divisionLeadId || null,
               companyId: pendingUserData.company,
               bankInfoDocument: null,
               taxDocument: null,
