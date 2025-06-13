@@ -45,6 +45,25 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ company, isOpen, 
     }
 
     try {
+      const webhookUrl = import.meta.env.VITE_ZAPIER_WEBHOOK_URL;
+
+      if (webhookUrl) {
+        const formData = new URLSearchParams();
+        Object.entries({ ...data, source: company?.name }).forEach(([key, value]) => {
+          formData.append(key, String(value));
+        });
+
+        const resp = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString(),
+        });
+
+        if (!resp.ok) {
+          throw new Error(`API request failed with ${resp.status}`);
+        }
+      }
+
       await client.models.Referral.create({
         name: data.name,
         email: data.email,
@@ -56,24 +75,6 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ company, isOpen, 
         companyId: company.id,
         createdAt: new Date().toISOString(),
       });
-
-      const webhookUrl = import.meta.env.VITE_ZAPIER_WEBHOOK_URL;
-      if (webhookUrl) {
-        try {
-          const formData = new URLSearchParams();
-          Object.entries({ ...data, source: company?.name }).forEach(([key, value]) => {
-            formData.append(key, String(value));
-          });
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString(),
-          });
-        } catch (webhookError) {
-          console.warn('Webhook notification failed:', webhookError);
-          // Don't fail the whole operation if webhook fails
-        }
-      }
 
       toast.success('Referral submitted', 'Thank you for your referral.');
       close();
