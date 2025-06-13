@@ -79,8 +79,8 @@ const BusinessPage = () => {
               company: companyName,
               status:
                 r.status === 'IN_PROGRESS'
-                  ? 'In Process'
-                  : r.status?.replace('_', ' ') || 'In Process',
+                  ? 'In Progress'
+                  : r.status?.replace('_', ' ') || 'In Progress',
               estimatedCommission: r.amount ?? null,
             });
           }
