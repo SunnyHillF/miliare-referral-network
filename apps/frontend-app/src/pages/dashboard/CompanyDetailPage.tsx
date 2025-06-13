@@ -27,6 +27,7 @@ const CompanyDetailPage = () => {
   const [company, setCompany] = useState<Schema["Company"]["type"] | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<StatItem[]>([]);
   const [trainingResources, setTrainingResources] = useState<
     Schema["TrainingResource"]["type"][]
@@ -39,13 +40,27 @@ const CompanyDetailPage = () => {
 
   useEffect(() => {
     const loadCompany = async () => {
-      if (!companyId) return;
+      if (!companyId) {
+        navigate("/dashboard/learn");
+        return;
+      }
+      
+      setIsLoading(true);
       try {
         const { data } = await client.models.Company.get({ id: companyId });
-        setCompany(data);
+        if (data) {
+          setCompany(data);
+        } else {
+          // Company not found
+          navigate("/dashboard/learn");
+          return;
+        }
       } catch (err) {
         console.error("Failed to load company", err);
         navigate("/dashboard/learn");
+        return;
+      } finally {
+        setIsLoading(false);
       }
     };
     loadCompany();
@@ -138,7 +153,20 @@ const CompanyDetailPage = () => {
     loadFaq();
   }, [companyId]);
 
-  if (!company) {
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-gray-500">Loading company details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If loading is complete but no company was found, redirect
+  if (!isLoading && !company) {
     navigate("/dashboard/learn");
     return null;
   }
