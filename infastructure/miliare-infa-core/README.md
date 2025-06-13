@@ -1,14 +1,11 @@
-# Welcome to your CDK TypeScript project
+# Miliare Infra Core
 
-This is a blank project for CDK development with TypeScript.
+This package contains CDK stacks for AWS resources that are not yet supported in Amplify Gen 2. Use these stacks to provision additional infrastructure such as event-driven workflows or custom APIs.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Useful Commands
 
-## Useful commands
-
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+```bash
+npm run build   # compile TypeScript
+npx cdk deploy  # deploy the stack
+npx cdk synth   # output the CloudFormation template
+```

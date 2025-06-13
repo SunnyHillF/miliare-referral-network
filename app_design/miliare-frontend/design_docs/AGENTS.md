@@ -2,8 +2,7 @@
 
 ## Project Overview
 
-This application is designed to meet the requirements outlined in `Design_specs.md`. The frontend is built with **Next.js 15** running on **Node.js 22**, utilizing the latest versions of **Tailwind CSS** and a **modern financial theme** with custom components. The goal is to deliver a professional, sophisticated, and maintainable user interface suitable for financial services and business applications.
-The backend infrastructure is defined using **AWS Amplify Gen&nbsp;2**, which provisions the GraphQL API and storage resources through TypeScript configuration.
+This document captures the design decisions from an earlier **Next.js 15** prototype. The active Miliare Referral Network frontend now uses **React + Vite** with **AWS Amplify Gen&nbsp;2**. The styling guidelines, component patterns and icon usage rules described below still apply to the current codebase.
 
 ## 🚨 CRITICAL: Memory Optimization for Amplify Builds
 
