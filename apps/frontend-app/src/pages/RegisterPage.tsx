@@ -23,7 +23,9 @@ const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Please enter a valid email address'),
-  phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
+  phoneNumber: z.string()
+    .min(1, 'Phone number is required')
+    .regex(/^\+1[0-9]{10}$/, 'Phone number must be in format +1XXXXXXXXXX (e.g., +12345678901)'),
   address: z.string().min(5, 'Please enter your full address'),
   
   // Company selection
@@ -189,13 +191,30 @@ const RegisterPage = () => {
               {...register('email')}
               error={errors.email?.message}
             />
-            <Input
-              label="Phone Number"
-              type="tel"
-              placeholder="+1234567890"
-              {...register('phoneNumber')}
-              error={errors.phoneNumber?.message}
-            />
+            <div className="space-y-1">
+              <Input
+                label="Phone Number"
+                type="tel"
+                placeholder="+12345678901"
+                {...register('phoneNumber')}
+                error={errors.phoneNumber?.message}
+                onChange={(e) => {
+                  // Auto-format phone number
+                  let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                  if (value.length > 0 && !value.startsWith('1')) {
+                    value = '1' + value; // Add country code if missing
+                  }
+                  if (value.length > 11) {
+                    value = value.slice(0, 11); // Limit to 11 digits
+                  }
+                  const formattedValue = value.length > 0 ? '+' + value : '';
+                  setValue('phoneNumber', formattedValue);
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                Format: +1 followed by 10 digits (e.g., +12345678901)
+              </p>
+            </div>
             <Input
               label="Address"
               placeholder="Street address, city, state, ZIP"
