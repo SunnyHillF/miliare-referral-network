@@ -11,7 +11,11 @@ import {
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
 import { Button } from '../../components/ui/Button';
-import { companyMeta, type CompanyMeta } from '../../data/companyMeta';
+import {
+  companyMeta,
+  type CompanyMeta,
+  getCompanyMetaKey,
+} from '../../data/companyMeta';
 
 const client = generateClient<Schema>();
 
@@ -70,7 +74,11 @@ const LearnPage = () => {
       {/* Company grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companies.map((company) => {
-          const meta = companyMeta[company.id] || defaultMeta;
+          const meta =
+            companyMeta[
+              getCompanyMetaKey(company.companyName || company.name || '')
+            ] ||
+            defaultMeta;
           return (
             <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">

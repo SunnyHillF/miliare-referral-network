@@ -9,7 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
-import { companyMeta } from '../../data/companyMeta';
+import { companyMeta, getCompanyMetaKey } from '../../data/companyMeta';
 import { toast } from '../../components/ui/Toaster';
 import ReferralFormModal from '../../components/ReferralFormModal';
 
@@ -34,19 +34,6 @@ const ReferPage = () => {
     fetchCompanies();
   }, []);
 
-  // Map company names to metadata keys
-  const getCompanyMetaKey = (companyName: string) => {
-    const nameMap: Record<string, string> = {
-      'Sunny Hill Financial': 'sunny-hill',
-      'Prime Corporate Services': 'prime',
-      'ANCO Insurance': 'anco',
-      'Weightless Financial': 'weightless',
-      'Summit Retirement Plans': 'summit',
-      'Wellness for the Workforce': 'wellness',
-      'Impact Health Sharing': 'impact',
-    };
-    return nameMap[companyName] || '';
-  };
 
   const categories = Array.from(
     new Set(

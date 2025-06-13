@@ -16,7 +16,7 @@ import { toast } from "../../components/ui/Toaster";
 import StatsOverview, { StatItem } from "../../components/StatsOverview";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
-import { companyMeta } from "../../data/companyMeta";
+import { companyMeta, getCompanyMetaKey } from "../../data/companyMeta";
 
 const client = generateClient<Schema>();
 
@@ -32,6 +32,10 @@ const CompanyDetailPage = () => {
     Schema["TrainingResource"]["type"][]
   >([]);
   const [faqItems, setFaqItems] = useState<Schema["FaqItem"]["type"][]>([]);
+
+  const metaKey = getCompanyMetaKey(
+    company?.companyName || company?.name || "",
+  );
 
   useEffect(() => {
     const loadCompany = async () => {
@@ -156,7 +160,7 @@ const CompanyDetailPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{company?.name}</h1>
           <p className="text-sm text-gray-500">
-            {(companyMeta[companyId || ""]?.tags || []).join(" • ")}
+            {(companyMeta[metaKey]?.tags || []).join(" • ")}
           </p>
         </div>
       </div>
@@ -170,13 +174,12 @@ const CompanyDetailPage = () => {
             <div
               className="w-24 h-24 rounded-full flex items-center justify-center"
               style={{
-                backgroundColor:
-                  companyMeta[companyId || ""]?.bgColor || "#f3f4f6",
+                backgroundColor: companyMeta[metaKey]?.bgColor || "#f3f4f6",
               }}
             >
-              {companyMeta[companyId || ""]?.icon &&
+              {companyMeta[metaKey]?.icon &&
                 React.cloneElement(
-                  companyMeta[companyId || ""].icon as React.ReactElement,
+                  companyMeta[metaKey].icon as React.ReactElement,
                   { size: 48 },
                 )}
             </div>
@@ -189,7 +192,7 @@ const CompanyDetailPage = () => {
             <p className="mt-4 text-gray-600">{company?.description}</p>
 
             <div className="mt-6 flex flex-wrap gap-2">
-              {(companyMeta[companyId || ""]?.tags || []).map((tag, index) => (
+              {(companyMeta[metaKey]?.tags || []).map((tag, index) => (
                 <span
                   key={index}
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
@@ -216,7 +219,7 @@ const CompanyDetailPage = () => {
               </a>
 
               <a
-                href={companyMeta[companyId || ""]?.referralUrl}
+                href={companyMeta[metaKey]?.referralUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"
@@ -244,7 +247,7 @@ const CompanyDetailPage = () => {
               <h3 className="text-lg font-medium">Commission Rate</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {companyMeta[companyId || ""]?.commissionInfo?.rate || "15-20%"}
+              {companyMeta[metaKey]?.commissionInfo?.rate || "15-20%"}
             </p>
             <p className="mt-2 text-sm text-gray-500">Of the service value</p>
           </div>
@@ -255,8 +258,7 @@ const CompanyDetailPage = () => {
               <h3 className="text-lg font-medium">Average Payout</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              {companyMeta[companyId || ""]?.commissionInfo?.average ||
-                "$500-$1,200"}
+              {companyMeta[metaKey]?.commissionInfo?.average || "$500-$1,200"}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Per successful referral
@@ -387,7 +389,7 @@ const CompanyDetailPage = () => {
           </div>
           <div className="mt-6 md:mt-0">
             <a
-              href={companyMeta[companyId || ""]?.referralUrl}
+              href={companyMeta[metaKey]?.referralUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block"

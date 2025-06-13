@@ -87,3 +87,16 @@ export const companyMeta: Record<string, CompanyMeta> = {
     commissionInfo: { rate: 'TBD', average: 'TBD' },
   },
 };
+
+export const companyNameMap: Record<string, string> = {
+  'Sunny Hill Financial': 'sunny-hill',
+  'Prime Corporate Services': 'prime',
+  'ANCO Insurance': 'anco',
+  'Weightless Financial': 'weightless',
+  'Summit Retirement Plans': 'summit',
+  'Wellness for the Workforce': 'wellness',
+  'Impact Health Sharing': 'impact',
+};
+
+export const getCompanyMetaKey = (companyName: string): string =>
+  companyNameMap[companyName] || '';
