@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, BookOpen, Video, FileText, Bookmark } from 'lucide-react';
+import {
+  ExternalLink,
+  BookOpen,
+  Video,
+  FileText,
+  Bookmark,
+  Building2,
+} from 'lucide-react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
 import { Button } from '../../components/ui/Button';
-import { companyMeta } from '../../data/companyMeta';
+import { companyMeta, type CompanyMeta } from '../../data/companyMeta';
 
 const client = generateClient<Schema>();
+
+const defaultMeta: CompanyMeta = {
+  icon: <Building2 className="h-6 w-6 text-gray-500" />,
+  tags: [],
+  bgColor: '#f3f4f6',
+};
 
 const LearnPage = () => {
   const [companies, setCompanies] = useState<Schema['Company']['type'][]>([]);
@@ -57,7 +70,7 @@ const LearnPage = () => {
       {/* Company grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companies.map((company) => {
-          const meta = companyMeta[company.id] || {};
+          const meta = companyMeta[company.id] || defaultMeta;
           return (
             <div key={company.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
@@ -92,7 +105,7 @@ const LearnPage = () => {
               </div>
 
               <div className="mt-6 flex justify-between items-center">
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 items-center">
                   {meta.hasTraining && (
                     <span title="Training available" className="text-primary">
                       <Video className="h-5 w-5" />
@@ -102,6 +115,14 @@ const LearnPage = () => {
                     <span title="Documentation available" className="text-primary">
                       <FileText className="h-5 w-5" />
                     </span>
+                  )}
+                  {meta.referralUrl && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={meta.referralUrl} target="_blank" rel="noopener noreferrer">
+                        Refer
+                        <ExternalLink className="ml-1 h-4 w-4" />
+                      </a>
+                    </Button>
                   )}
                 </div>
 
