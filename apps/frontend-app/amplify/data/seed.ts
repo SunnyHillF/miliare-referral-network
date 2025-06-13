@@ -353,7 +353,7 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[1]?.id || "default-company-id", // Prime Corporate Services
+        companyId: createdCompanies[0]?.id || "default-company-id",
         name: "Emily Davis",
         email: "emily.davis@email.com",
         phoneNumber: "+1555123457",
@@ -374,7 +374,7 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[2]?.id || "default-company-id", // ANCO Insurance
+        companyId: createdCompanies[0]?.id || "default-company-id",
         name: "Michael Brown",
         email: "michael.brown@email.com",
         phoneNumber: "+1555123458",
@@ -401,7 +401,7 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[3]?.id || "default-company-id", // Weightless Financial
+        companyId: createdCompanies[0]?.id || "default-company-id",
         name: "Sarah Wilson",
         email: "sarah.wilson@email.com",
         phoneNumber: "+1555123459",
@@ -421,7 +421,7 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[4]?.id || "default-company-id", // Summit Retirement Plans
+        companyId: createdCompanies[0]?.id || "default-company-id",
         name: "David Martinez",
         email: "david.martinez@email.com",
         phoneNumber: "+1555123460",
@@ -447,7 +447,7 @@ export async function seedData() {
         updatedAt: new Date().toISOString(),
       },
       {
-        companyId: createdCompanies[6]?.id || "default-company-id", // Impact Health Sharing
+        companyId: createdCompanies[0]?.id || "default-company-id",
         name: "Jennifer Lee",
         email: "jennifer.lee@email.com",
         phoneNumber: "+1555123461",
@@ -458,6 +458,66 @@ export async function seedData() {
         status: "IN_REVIEW" as const,
         notes:
           "Family of 4 interested in health sharing plan as alternative to traditional insurance",
+        teamLeadId:
+          createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
+          "fallback-teamlead-id",
+        orgLeadId:
+          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
+          "fallback-orglead-id",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        companyId: createdCompanies[0]?.id || "default-company-id",
+        name: "John Smith",
+        email: "john.smith@email.com",
+        phoneNumber: "+1555123462",
+        approximateValue: 0,
+        userId:
+          createdUsers.find((u) => u.email === "agent@test.com")?.id ||
+          "fallback-agent-id",
+        status: "IN_PROGRESS" as const,
+        notes: "Interested in business services",
+        teamLeadId:
+          createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
+          "fallback-teamlead-id",
+        orgLeadId:
+          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
+          "fallback-orglead-id",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        companyId: createdCompanies[0]?.id || "default-company-id",
+        name: "Sarah Johnson",
+        email: "sarah.johnson@email.com",
+        phoneNumber: "+1555123463",
+        approximateValue: 0,
+        userId:
+          createdUsers.find((u) => u.email === "agent@test.com")?.id ||
+          "fallback-agent-id",
+        status: "IN_PROGRESS" as const,
+        notes: "Looking for financial planning services",
+        teamLeadId:
+          createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
+          "fallback-teamlead-id",
+        orgLeadId:
+          createdUsers.find((u) => u.email === "orglead@test.com")?.id ||
+          "fallback-orglead-id",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        companyId: createdCompanies[0]?.id || "default-company-id",
+        name: "Michael Brown",
+        email: "michael.brown2@email.com",
+        phoneNumber: "+1555123464",
+        approximateValue: 0,
+        userId:
+          createdUsers.find((u) => u.email === "agent@test.com")?.id ||
+          "fallback-agent-id",
+        status: "IN_REVIEW" as const,
+        notes: "Follow up about health sharing options",
         teamLeadId:
           createdUsers.find((u) => u.email === "teamlead@test.com")?.id ||
           "fallback-teamlead-id",

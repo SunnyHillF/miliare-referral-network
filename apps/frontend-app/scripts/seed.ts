@@ -31,9 +31,9 @@ async function runSeed() {
       const outputs = JSON.parse(fs.readFileSync(outputsPath, 'utf8'));
       Amplify.configure(outputs);
       console.log('✅ Amplify configured successfully');
-    } catch (error) {
-      console.error('❌ Failed to load amplify_outputs.json. Make sure you have deployed your app first.');
-      console.error('Run: npx ampx sandbox or npx ampx deploy');
+  } catch {
+    console.error('❌ Failed to load amplify_outputs.json. Make sure you have deployed your app first.');
+    console.error('Run: npx ampx sandbox or npx ampx deploy');
       process.exit(1);
     }
     

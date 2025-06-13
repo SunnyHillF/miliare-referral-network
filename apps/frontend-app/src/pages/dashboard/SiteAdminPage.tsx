@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
+
+interface AmplifyConfig {
+  custom?: {
+    API: Record<string, { endpoint?: string; region?: string; apiName?: string }>;
+  };
+}
 
 function generateApiKey() {
   // Generate a shorter, more manageable API key (32 characters)
@@ -21,10 +27,10 @@ async function hashApiKey(apiKey: string): Promise<string> {
 }
 
 // Extract webhook API info from Amplify configuration
-const getWebhookApiInfo = () => {
-  try {
-    // Try to get from window.amplifyConfig if available (after Amplify.configure)
-    const amplifyConfig = (window as any).amplifyConfig;
+  const getWebhookApiInfo = () => {
+    try {
+      // Try to get from window.amplifyConfig if available (after Amplify.configure)
+      const amplifyConfig = (window as unknown as { amplifyConfig?: AmplifyConfig }).amplifyConfig;
     if (amplifyConfig?.custom?.API) {
       const apiKey = Object.keys(amplifyConfig.custom.API)[0];
       const apiInfo = amplifyConfig.custom.API[apiKey];
@@ -68,7 +74,7 @@ const tryLoadAmplifyOutputs = async () => {
     }
 
     // Check if it's available in window object (set by Amplify after configuration)
-    const amplifyConfig = (window as any).amplifyConfig;
+    const amplifyConfig = (window as unknown as { amplifyConfig?: AmplifyConfig }).amplifyConfig;
     if (amplifyConfig?.custom?.API) {
       const apiKey = Object.keys(amplifyConfig.custom.API)[0];
       const apiInfo = amplifyConfig.custom.API[apiKey];
@@ -82,7 +88,7 @@ const tryLoadAmplifyOutputs = async () => {
         };
       }
     }
-  } catch (error) {
+  } catch {
     console.info('Webhook API info will be available after deployment');
   }
   return null;
@@ -102,22 +108,7 @@ const SiteAdminPage = () => {
   const CopyIcon = copied ? Check : Copy;
   const EndpointCopyIcon = endpointCopied ? Check : Copy;
 
-  // Load company data and try to get real webhook info on component mount
-  useEffect(() => {
-    loadCompanyData();
-    
-    // Try to get real webhook info after component mounts
-    const tryGetRealWebhookInfo = async () => {
-      const realWebhookInfo = await tryLoadAmplifyOutputs();
-      if (realWebhookInfo) {
-        setWebhookInfo(realWebhookInfo);
-      }
-    };
-
-    tryGetRealWebhookInfo();
-  }, []);
-
-  const loadCompanyData = async () => {
+  const loadCompanyData = useCallback(async () => {
     try {
       setLoading(true);
       // For now, get the first company - in a real app, you'd get the user's company
@@ -131,7 +122,22 @@ const SiteAdminPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [client]);
+
+  // Load company data and try to get real webhook info on component mount
+  useEffect(() => {
+    loadCompanyData();
+
+    // Try to get real webhook info after component mounts
+    const tryGetRealWebhookInfo = async () => {
+      const realWebhookInfo = await tryLoadAmplifyOutputs();
+      if (realWebhookInfo) {
+        setWebhookInfo(realWebhookInfo);
+      }
+    };
+
+    tryGetRealWebhookInfo();
+  }, [loadCompanyData]);
 
   const handleRegenerate = async () => {
     if (!company) {
