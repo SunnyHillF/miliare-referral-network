@@ -2,12 +2,12 @@ import React from 'react';
 import { Button } from './ui/Button';
 
 export type PendingReferral = {
-  id: number;
+  id: string | number;
   date: string;
   client: string;
   company: string;
   status: string;
-  estimatedCommission: number;
+  estimatedCommission?: number | null;
 };
 
 interface PendingReferralsCardProps {

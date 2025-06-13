@@ -3,7 +3,7 @@ import { CreditCard } from 'lucide-react';
 import { Button } from './ui/Button';
 
 export type RecentPayment = {
-  id: number;
+  id: string | number;
   date: string;
   amount: number;
   status: string;
@@ -15,7 +15,7 @@ interface RecentPaymentsCardProps {
   payments: RecentPayment[];
   onViewHistory?: () => void;
   showStatusToggle?: boolean;
-  onToggleStatus?: (id: number) => void;
+  onToggleStatus?: (id: string | number) => void;
 }
 
 const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
