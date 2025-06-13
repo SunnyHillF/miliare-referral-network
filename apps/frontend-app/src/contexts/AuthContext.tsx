@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCurrentUser, signIn, signOut, signUp, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../amplify/data/resource';
 /* eslint react-refresh/only-export-components: 0 */
 
 type User = {
@@ -37,6 +39,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Helper function to create User record in DynamoDB
+  const createUserRecord = async (userData: Omit<User, 'id' | 'groups'>) => {
+    try {
+      const client = generateClient<Schema>();
+      const currentUser = await getCurrentUser();
+      
+      await client.models.User.create({
+        id: currentUser.userId, // Use Cognito user ID
+        name: `${userData.firstName} ${userData.lastName}`,
+        email: userData.email,
+        phone: userData.phoneNumber,
+        address: userData.address,
+        teamId: userData.teamId || null,
+        teamLead: false, // Default to false for new users
+        teamLeadId: null,
+        orgLeadId: userData.orgLeadId || null,
+        companyId: userData.company,
+        bankInfoDocument: null,
+        taxDocument: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log('User record created in DynamoDB');
+    } catch (dbError) {
+      console.error('Failed to create User record in DynamoDB:', dbError);
+      // Don't fail the process if DynamoDB creation fails
+      throw dbError;
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
@@ -132,10 +165,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (isSignUpComplete) {
         // Auto-sign in after successful registration
         await login(userData.email, userData.password);
+        
+        // Create User record in DynamoDB after successful login
+        await createUserRecord(userData);
+        
         // login() will handle setting isLoading(false) via checkAuthStatus
         return true;
       } else {
         // User needs to verify email - not complete yet
+        // Store user data for later DynamoDB creation after verification
+        sessionStorage.setItem('pendingUserData', JSON.stringify(userData));
         setIsLoading(false);
         return false;
       }

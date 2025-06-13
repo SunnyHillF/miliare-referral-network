@@ -62,7 +62,7 @@ export const schema = a.schema({
       updatedAt: a.string(),
     })
     .authorization((allow) => [
-      allow.owner().to(["read"]),
+      allow.owner().to(["create", "read", "update"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("teamLead").to(["read"]),
       allow.group("orgLead").to(["update", "read"]),

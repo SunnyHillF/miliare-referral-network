@@ -32,13 +32,13 @@ const VerifyEmailPage: React.FC = () => {
     defaultValues: { email: initialEmail, code: '' },
   });
 
-  // Clean up temp password on component unmount (if user navigates away)
+  // Clean up temp data on component unmount (if user navigates away)
   useEffect(() => {
     return () => {
       // Only clean up if user is navigating away without completing verification
-      const tempPassword = sessionStorage.getItem('tempPassword');
-      if (tempPassword && !window.location.pathname.includes('/dashboard')) {
+      if (!window.location.pathname.includes('/dashboard')) {
         sessionStorage.removeItem('tempPassword');
+        sessionStorage.removeItem('pendingUserData');
       }
     };
   }, []);
@@ -57,32 +57,45 @@ const VerifyEmailPage: React.FC = () => {
         
         // Save user to DynamoDB after successful login
         try {
-          const attributes = await fetchUserAttributes();
+          // Get the stored user data from registration
+          const pendingUserDataStr = sessionStorage.getItem('pendingUserData');
           
-          // Create user record in DynamoDB
-          await client.models.User.create({
-            id: attributes.sub!, // Cognito user ID
-            name: `${attributes.given_name || ''} ${attributes.family_name || ''}`.trim(),
-            email: attributes.email!,
-            phone: attributes.phone_number,
-            address: attributes.address,
-            teamId: attributes['custom:teamId'],
-            teamLead: false, // Default to false, will be set by admin later
-            teamLeadId: attributes['custom:teamLeadId'],
-            orgLeadId: attributes['custom:orgLeadId'],
-            companyId: attributes['custom:companyId']!, // Foreign key for company relationship
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          });
-          
-          console.log('User saved to DynamoDB successfully');
+          if (pendingUserDataStr) {
+            const pendingUserData = JSON.parse(pendingUserDataStr);
+            const { getCurrentUser } = await import('aws-amplify/auth');
+            const currentUser = await getCurrentUser();
+            
+            // Create user record in DynamoDB using original registration data
+            await client.models.User.create({
+              id: currentUser.userId, // Cognito user ID
+              name: `${pendingUserData.firstName} ${pendingUserData.lastName}`,
+              email: pendingUserData.email,
+              phone: pendingUserData.phoneNumber,
+              address: pendingUserData.address,
+              teamId: pendingUserData.teamId || null,
+              teamLead: false, // Default to false for new users
+              teamLeadId: null,
+              orgLeadId: pendingUserData.orgLeadId || null,
+              companyId: pendingUserData.company,
+              bankInfoDocument: null,
+              taxDocument: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+            
+            // Clean up the stored data
+            sessionStorage.removeItem('pendingUserData');
+            console.log('User saved to DynamoDB successfully');
+          } else {
+            console.warn('No pending user data found, user record may not be created');
+          }
         } catch (dbError) {
           // Log the error but don't fail the verification process
           console.error('Failed to save user to DynamoDB:', dbError);
           // The user is still verified and logged in, just not in the database yet
         }
         
-        // Clear the temporary password
+        // Clear the temporary data
         sessionStorage.removeItem('tempPassword');
         toast.success('Email verified!', 'Welcome to Miliare');
         navigate('/dashboard');
