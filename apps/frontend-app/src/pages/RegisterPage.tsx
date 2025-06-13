@@ -12,7 +12,10 @@ import { toast } from '../components/ui/Toaster';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
 
-const client = generateClient<Schema>();
+// Use guest access for registration page since user isn't signed in yet
+const client = generateClient<Schema>({
+  authMode: 'identityPool'
+});
 
 // Form validation schema - updated to match Cognito requirements
 const registerSchema = z.object({
@@ -140,7 +143,7 @@ const RegisterPage = () => {
         phoneNumber: data.phoneNumber,
         address: data.address,
         company: data.companyId, // This maps to custom:companyId in AuthContext
-        activated: false, // Will be activated by admin
+        activated: true, // Automatically activate new users
         password: data.password,
       });
 
@@ -256,9 +259,9 @@ const RegisterPage = () => {
               error={errors.confirmPassword?.message}
             />
             
-            <div className="p-4 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Your account will need to be activated by a company administrator before you can access all features.
+            <div className="p-4 bg-green-50 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>Note:</strong> Your account will be automatically activated and ready to use once registration is complete.
               </p>
             </div>
           </div>
