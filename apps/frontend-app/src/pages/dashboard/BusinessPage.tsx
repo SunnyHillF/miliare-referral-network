@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 // Icons are referenced by name via an icon map; avoid importing unused icons
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';

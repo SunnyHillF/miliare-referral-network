@@ -5,7 +5,11 @@ import {
   Cors,
   LambdaIntegration,
   RestApi,
+  DomainName,
+  BasePathMapping,
 } from 'aws-cdk-lib/aws-apigateway';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -22,6 +26,16 @@ const API_CONFIG = {
   },
 } as const;
 
+// Simplified domain configuration using environment variables
+const DOMAIN_CONFIG = {
+  baseDomain: 'miliarereferral.com',
+  hostedZoneId: 'Z06213242VS6L891DGP31',
+  getCustomDomain: () => {
+    const subdomain = process.env.BRANCH === 'prod' ? 'api' : process.env.BRANCH === 'main' ? 'api-stage' : `api-${process.env.BRANCH}`;
+    return `${subdomain}.miliarereferral.com`;
+  },
+};
+
 const CORS_CONFIG = {
   allowOrigins: Cors.ALL_ORIGINS,
   allowMethods: ['POST', 'OPTIONS'],
@@ -34,10 +48,15 @@ export const backend = defineBackend({
   updateReferralStatusWebhook,
 });
 
-// Create webhook API
+// Create webhook API with simplified configuration
 const createWebhookApi = () => {
   const apiStack = backend.createStack('webhook-api-stack');
   
+  // Use environment variables for branch configuration
+  const branch = process.env.AWS_BRANCH || 'main';
+  const customDomain = DOMAIN_CONFIG.getCustomDomain();
+  
+  // Create API
   const api = new RestApi(apiStack, 'WebhookRestApi', {
     restApiName: API_CONFIG.name,
     deploy: true,
@@ -45,7 +64,34 @@ const createWebhookApi = () => {
     defaultCorsPreflightOptions: CORS_CONFIG,
   });
 
-  return { api, stack: apiStack };
+  // Always create custom domain
+  const hostedZone = HostedZone.fromHostedZoneAttributes(apiStack, 'HostedZone', {
+    hostedZoneId: DOMAIN_CONFIG.hostedZoneId,
+    zoneName: DOMAIN_CONFIG.baseDomain,
+  });
+
+  const certificate = new Certificate(apiStack, 'ApiCertificate', {
+    domainName: customDomain,
+    validation: CertificateValidation.fromDns(hostedZone),
+  });
+
+  const customDomainResource = new DomainName(apiStack, 'ApiDomainName', {
+    domainName: customDomain,
+    certificate,
+  });
+
+  new BasePathMapping(apiStack, 'ApiBasePathMapping', {
+    domainName: customDomainResource,
+    restApi: api,
+    stage: api.deploymentStage,
+  });
+
+  return { 
+    api, 
+    stack: apiStack, 
+    customDomain,
+    branch
+  };
 };
 
 // Setup API routes
@@ -85,15 +131,24 @@ const configureLambdaPermissions = () => {
   );
 };
 
-// Add outputs
-const addApiOutputs = (api: RestApi) => {
+// Add comprehensive outputs for both environments
+const addApiOutputs = (api: RestApi, customDomain: string, branch: string) => {
+  const baseUrl = `https://${customDomain}`;
+  const webhookEndpoint = `${baseUrl}/webhook/referrals/{referralId}`;
+  const subdomain = customDomain.split('.')[0]; // Extract subdomain from full domain
+  
   backend.addOutput({
     custom: {
       API: {
         [api.restApiName]: {
-          endpoint: api.url,
+          endpoint: baseUrl,
+          webhookEndpoint,
           region: Stack.of(api).region,
           apiName: api.restApiName,
+          customDomain,
+          branch,
+          enableCustomDomain: true,
+          subdomain,
         },
       },
     },
@@ -101,7 +156,7 @@ const addApiOutputs = (api: RestApi) => {
 };
 
 // Main setup
-const { api } = createWebhookApi();
+const { api, customDomain, branch } = createWebhookApi();
 setupApiRoutes(api);
 configureLambdaPermissions();
-addApiOutputs(api);
+addApiOutputs(api, customDomain, branch);

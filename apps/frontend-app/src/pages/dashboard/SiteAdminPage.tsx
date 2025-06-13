@@ -4,12 +4,6 @@ import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 
-interface AmplifyConfig {
-  custom?: {
-    API: Record<string, { endpoint?: string; region?: string; apiName?: string }>;
-  };
-}
-
 function generateApiKey() {
   // Generate a shorter, more manageable API key (32 characters)
   const array = new Uint32Array(4);
@@ -20,78 +14,38 @@ function generateApiKey() {
 async function hashApiKey(apiKey: string): Promise<string> {
   // Create SHA-256 hash using Web Crypto API (no external dependency needed)
   const encoder = new TextEncoder();
-  const data = encoder.encode(apiKey);
+  const data = encoder.encode(apiKey.trim()); // Trim to match handler behavior
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Extract webhook API info from Amplify configuration
-  const getWebhookApiInfo = () => {
-    try {
-      // Try to get from window.amplifyConfig if available (after Amplify.configure)
-      const amplifyConfig = (window as unknown as { amplifyConfig?: AmplifyConfig }).amplifyConfig;
-    if (amplifyConfig?.custom?.API) {
-      const apiKey = Object.keys(amplifyConfig.custom.API)[0];
-      const apiInfo = amplifyConfig.custom.API[apiKey];
-      
-      if (apiInfo?.endpoint) {
-        return {
-          baseUrl: apiInfo.endpoint.replace(/\/$/, ''),
-          fullEndpoint: `${apiInfo.endpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-          region: apiInfo.region || 'us-west-2',
-          apiName: apiInfo.apiName || apiKey
-        };
-      }
-    }
-  } catch (error) {
-    console.warn('Could not extract webhook API info:', error);
+// Get webhook API info based on branch
+const getWebhookApiInfo = () => {
+  // Get branch from environment or default to main
+  const branch = process.env.REACT_APP_BRANCH || 'main';
+  
+  // Determine subdomain based on branch
+  let subdomain = 'api';
+  if (branch === 'prod') {
+    subdomain = 'api';
+  } else if (branch === 'main') {
+    subdomain = 'api-stage';
+  } else {
+    subdomain = `api-${branch}`;
   }
   
-  // Fallback for development or when outputs aren't available
+  const customDomain = `${subdomain}.miliarereferral.com`;
+  const baseUrl = `https://${customDomain}`;
+  
   return {
-    baseUrl: 'https://[api-gateway-url].execute-api.us-west-2.amazonaws.com/prod',
-    fullEndpoint: 'https://[api-gateway-url].execute-api.us-west-2.amazonaws.com/prod/webhook/referrals/{referralId}',
+    baseUrl,
+    fullEndpoint: `${baseUrl}/webhook/referrals/{referralId}`,
+    customDomain,
+    branch,
     region: 'us-west-2',
-    apiName: 'referralWebhookApi',
-    isDevelopment: true
+    apiName: 'referralWebhookApi'
   };
-};
-
-// Helper function to try loading amplify outputs from environment or runtime
-const tryLoadAmplifyOutputs = async () => {
-  try {
-    // Check if webhook API info is available in environment variables
-    const apiEndpoint = process.env.REACT_APP_WEBHOOK_API_ENDPOINT;
-    if (apiEndpoint) {
-      return {
-        baseUrl: apiEndpoint.replace(/\/$/, ''),
-        fullEndpoint: `${apiEndpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-        region: process.env.REACT_APP_AWS_REGION || 'us-west-2',
-        apiName: 'referralWebhookApi',
-        isDevelopment: false
-      };
-    }
-
-    // Check if it's available in window object (set by Amplify after configuration)
-    const amplifyConfig = (window as unknown as { amplifyConfig?: AmplifyConfig }).amplifyConfig;
-    if (amplifyConfig?.custom?.API) {
-      const apiKey = Object.keys(amplifyConfig.custom.API)[0];
-      const apiInfo = amplifyConfig.custom.API[apiKey];
-      if (apiInfo?.endpoint) {
-        return {
-          baseUrl: apiInfo.endpoint.replace(/\/$/, ''),
-          fullEndpoint: `${apiInfo.endpoint.replace(/\/$/, '')}/webhook/referrals/{referralId}`,
-          region: apiInfo.region || 'us-west-2',
-          apiName: apiInfo.apiName || apiKey,
-          isDevelopment: false
-        };
-      }
-    }
-  } catch {
-    console.info('Webhook API info will be available after deployment');
-  }
-  return null;
 };
 
 const SiteAdminPage = () => {
@@ -101,7 +55,7 @@ const SiteAdminPage = () => {
   const [copied, setCopied] = useState(false);
   const [endpointCopied, setEndpointCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [webhookInfo, setWebhookInfo] = useState(getWebhookApiInfo());
+  const [webhookInfo] = useState(getWebhookApiInfo());
 
   const client = generateClient<Schema>();
   const RefreshIcon = RefreshCw;
@@ -124,19 +78,9 @@ const SiteAdminPage = () => {
     }
   }, [client]);
 
-  // Load company data and try to get real webhook info on component mount
+  // Load company data on component mount
   useEffect(() => {
     loadCompanyData();
-
-    // Try to get real webhook info after component mounts
-    const tryGetRealWebhookInfo = async () => {
-      const realWebhookInfo = await tryLoadAmplifyOutputs();
-      if (realWebhookInfo) {
-        setWebhookInfo(realWebhookInfo);
-      }
-    };
-
-    tryGetRealWebhookInfo();
   }, [loadCompanyData]);
 
   const handleRegenerate = async () => {
@@ -211,14 +155,6 @@ const SiteAdminPage = () => {
         </div>
       )}
 
-      {webhookInfo.isDevelopment && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <p className="text-blue-800 text-sm">
-            <strong>Development Mode:</strong> Webhook URLs will be populated after deploying your Amplify Gen 2 app.
-          </p>
-        </div>
-      )}
-
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Webhook Configuration</h2>
@@ -236,13 +172,12 @@ const SiteAdminPage = () => {
                 variant="ghost" 
                 onClick={handleCopyEndpoint}
                 className="h-8 w-8 p-0"
-                disabled={webhookInfo.isDevelopment}
               >
                 <EndpointCopyIcon className="h-4 w-4" />
               </Button>
             </div>
             <div className={`p-3 rounded border font-mono text-sm break-all ${
-              webhookInfo.isDevelopment ? 'bg-gray-100 text-gray-500' : 'bg-gray-50'
+              'bg-gray-50'
             }`}>
               {webhookInfo.fullEndpoint}
             </div>
