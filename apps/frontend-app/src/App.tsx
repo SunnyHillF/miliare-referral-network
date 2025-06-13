@@ -94,7 +94,7 @@ function App() {
               <AdminPage />
             </ProtectedRoute>
           } />
-          <Route path="partners/:companyId" element={<CompanyDetailPage />} />
+          <Route path="companies/:companyId" element={<CompanyDetailPage />} />
         </Route>
         
         {/* Redirect root to login */}
