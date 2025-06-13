@@ -171,8 +171,12 @@ const BusinessPage = () => {
     setActiveReferral(referral);
   };
 
-  const handleStatusUpdated = (id: string) => {
-    setPendingReferrals((prev) => prev.filter((r) => r.id !== id));
+  const handleStatusUpdated = (id: string, newStatus: string) => {
+    setPendingReferrals((prev) =>
+      prev
+        .map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+        .filter((r) => !(r.id === id && newStatus === 'PAID'))
+    );
   };
 
   const handleViewPaymentHistory = () => {

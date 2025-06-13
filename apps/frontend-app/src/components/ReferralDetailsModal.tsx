@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
 import Modal from './ui/Modal';
 import { Button } from './ui/Button';
+import { Select } from './ui/Select';
 import { toast } from './ui/Toaster';
 import type { PendingReferral } from './PendingReferralsCard';
 
@@ -21,6 +22,20 @@ const ReferralDetailsModal: React.FC<ReferralDetailsModalProps> = ({
 }) => {
   const client = generateClient<Schema>();
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('IN_PROGRESS');
+
+  const statusOptions = [
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'IN_REVIEW', label: 'In Review' },
+    { value: 'PAID', label: 'Paid' },
+    { value: 'REJECTED', label: 'Rejected' },
+  ];
+
+  useEffect(() => {
+    if (referral?.status) {
+      setStatus(referral.status);
+    }
+  }, [referral]);
 
   const updateStatus = async () => {
     if (!referral) return;
@@ -28,11 +43,12 @@ const ReferralDetailsModal: React.FC<ReferralDetailsModalProps> = ({
     try {
       await client.models.Referral.update({
         id: String(referral.id),
-        status: 'PAID',
-        paymentStatus: 'PENDING',
+        status,
+        ...(status === 'PAID' ? { paymentStatus: 'PENDING' } : {}),
       });
-      toast.success('Referral updated', 'Status changed to Paid');
-      onStatusUpdated?.(String(referral.id), 'PAID');
+      const label = statusOptions.find((o) => o.value === status)?.label || status;
+      toast.success('Referral updated', `Status changed to ${label}`);
+      onStatusUpdated?.(String(referral.id), status);
       onClose();
     } catch (err) {
       console.error('Failed to update referral status', err);
@@ -54,8 +70,19 @@ const ReferralDetailsModal: React.FC<ReferralDetailsModalProps> = ({
           <strong>Company:</strong> {referral.company}
         </p>
         <p>
-          <strong>Status:</strong> {referral.status}
+          <strong>Date:</strong> {new Date(referral.date).toLocaleDateString()}
         </p>
+        <div>
+          <Select
+            label="Status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            options={statusOptions.map((opt) => ({
+              ...opt,
+              disabled: opt.value === referral.status,
+            }))}
+          />
+        </div>
         {typeof referral.estimatedCommission === 'number' && (
           <p>
             <strong>Commission:</strong> ${referral.estimatedCommission.toLocaleString()}
@@ -67,7 +94,7 @@ const ReferralDetailsModal: React.FC<ReferralDetailsModalProps> = ({
           Close
         </Button>
         <Button onClick={updateStatus} disabled={loading}>
-          Mark as Paid
+          Update Status
         </Button>
       </div>
     </Modal>

@@ -13,7 +13,11 @@ import { toast } from './ui/Toaster';
 const formSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
   email: z.string().trim().email('Please enter a valid email address').toLowerCase(),
-  phone: z.string().trim().min(10, 'Phone number must be at least 10 digits').regex(/^[\d\s\-\(\)\+\.]+$/, 'Please enter a valid phone number'),
+  phone: z
+    .string()
+    .trim()
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(/^[\d\s-()+.]+$/, 'Please enter a valid phone number'),
   referralType: z.string().trim().min(3, 'Please describe the type of referral (minimum 3 characters)').max(200, 'Description too long'),
   value: z.string().trim().min(1, 'Approximate value is required')
     .refine((val: string) => {
