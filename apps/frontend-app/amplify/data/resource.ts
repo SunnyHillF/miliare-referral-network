@@ -30,7 +30,9 @@ export const schema = a.schema({
   }).authorization((allow) => [
     allow.guest().to(['read']),
     allow.group('admin').to(['create', 'read', 'update', 'delete']),
-    allow.group('companyAdmin').to(['read', 'update'])
+    allow.group('companyAdmin').to(['read', 'update']),
+    // Allow API key for seed scripts
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete'])
   ]),
 
   // User model (extends Cognito user)
@@ -58,7 +60,9 @@ export const schema = a.schema({
     allow.group('admin').to(['create', 'read', 'update', 'delete']),
     allow.group('teamLead').to(['read']),
     allow.group('orgLead').to(['update','read']),
-    allow.group('companyAdmin').to(['create', 'read', 'update', 'delete'])
+    allow.group('companyAdmin').to(['create', 'read', 'update', 'delete']),
+    // Allow API key for seed scripts
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete'])
   ]),
 
   // Referral model
@@ -98,7 +102,9 @@ export const schema = a.schema({
     allow.owner().to(['create', 'read', 'update']),
     allow.group('admin').to(['create', 'read', 'update', 'delete']),
     allow.group('teamLead').to(['update','read']),
-    allow.group('orgLead').to(['update','read'])
+    allow.group('orgLead').to(['update','read']),
+    // Allow API key for seed scripts
+    allow.publicApiKey().to(['create', 'read', 'update', 'delete'])
   ])
 });
 
