@@ -31,7 +31,8 @@ const DOMAIN_CONFIG = {
   baseDomain: 'miliarereferral.com',
   hostedZoneId: 'Z06213242VS6L891DGP31',
   getCustomDomain: () => {
-    const subdomain = process.env.BRANCH === 'prod' ? 'api' : process.env.BRANCH === 'main' ? 'api-stage' : `api-${process.env.BRANCH}`;
+    const branch = process.env.AWS_BRANCH || process.env.BRANCH || 'main';
+    const subdomain = branch === 'prod' ? 'api' : branch === 'main' ? 'api-stage' : `api-${branch}`;
     return `${subdomain}.miliarereferral.com`;
   },
 };
@@ -52,8 +53,8 @@ export const backend = defineBackend({
 const createWebhookApi = () => {
   const apiStack = backend.createStack('webhook-api-stack');
   
-  // Use environment variables for branch configuration
-  const branch = process.env.AWS_BRANCH || 'main';
+  // Use environment variables for branch configuration - consistent with getCustomDomain
+  const branch = process.env.AWS_BRANCH || process.env.BRANCH || 'main';
   const customDomain = DOMAIN_CONFIG.getCustomDomain();
   
   // Create API

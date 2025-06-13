@@ -22,18 +22,16 @@ async function hashApiKey(apiKey: string): Promise<string> {
 
 // Get webhook API info based on branch
 const getWebhookApiInfo = () => {
-  // Get branch from environment or default to main
-  const branch = process.env.REACT_APP_BRANCH || 'main';
+  // Get branch from environment or default to main - consistent with backend
+  const branch = process.env.REACT_APP_AWS_BRANCH || process.env.REACT_APP_BRANCH || 'main';
   
   // Determine subdomain based on branch
-  let subdomain = 'api';
+  let subdomain = 'api-${branch}';
   if (branch === 'prod') {
     subdomain = 'api';
   } else if (branch === 'main') {
     subdomain = 'api-stage';
-  } else {
-    subdomain = `api-${branch}`;
-  }
+  } 
   
   const customDomain = `${subdomain}.miliarereferral.com`;
   const baseUrl = `https://${customDomain}`;
