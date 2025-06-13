@@ -4,7 +4,6 @@ import PendingPaymentsCard, { PendingPayment } from '../../components/PendingPay
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { useAuth } from '../../contexts/AuthContext';
-import { listCompanyUsers, setUserActivated, CompanyUser } from '../../utils/manageUsers';
 
 const CompanyAdminPage = () => {
   const { user } = useAuth();
@@ -18,13 +17,15 @@ const CompanyAdminPage = () => {
     const loadMembers = async () => {
       if (!user?.company) return;
       try {
-        const users = await listCompanyUsers(user.company);
+        const { data } = await client.models.User.list({
+          filter: { companyId: { eq: user.company } }
+        });
         setMembers(
-          users.map((u: CompanyUser) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            active: u.activated,
+          data.map((u) => ({
+            id: u.id || '',
+            name: u.name || '',
+            email: u.email || '',
+            active: true, // Since we don't have an activated field in the DB, assume all users are active
           }))
         );
       } catch (err) {
@@ -72,25 +73,21 @@ const CompanyAdminPage = () => {
 
 
   const toggleMemberStatus = (id: string | number) => {
-    let newStatus = false;
+    // For now, just update the UI state since we don't have an activated field in the database
+    // In the future, you could add an 'active' field to the User model and update it here
     setMembers((prev) =>
       prev.map((m) => {
         if (m.id === id) {
-          newStatus = !m.active;
-          return { ...m, active: newStatus };
+          return { ...m, active: !m.active };
         }
         return m;
       })
     );
-
-    clearTimeout(timers.current[String(id)]);
-    timers.current[String(id)] = setTimeout(async () => {
-      try {
-        await setUserActivated(String(id), newStatus);
-      } catch (err) {
-        console.error('Failed to update user', err);
-      }
-    }, 10000);
+    
+    // Note: This is just a UI change. To persist the status, you would need to:
+    // 1. Add an 'active' or 'status' field to the User model in the schema
+    // 2. Update the user record in the database here
+    console.log(`Member ${id} status toggled`);
   };
 
   const changePaymentStatus = (id: string | number, status: 'PROCESSED' | 'FAILED') => {
