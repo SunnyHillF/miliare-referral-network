@@ -55,6 +55,8 @@ const SiteAdminPage = () => {
   }, [loadCompanyData]);
 
   const handleRegenerate = async () => {
+    console.log('handleRegenerate called, company:', company);
+    
     if (!company) {
       setError('No company found');
       return;
@@ -66,25 +68,35 @@ const SiteAdminPage = () => {
       
       // Generate new API key
       const newApiKey = generateApiKey();
+      console.log('Generated new API key:', newApiKey);
+      
       const hashedKey = await hashApiKey(newApiKey);
+      console.log('Generated hash:', hashedKey);
       
       // Update company with new hashed API key
+      console.log('Updating company with ID:', company.id);
       const updatedCompany = await client.models.Company.update({
         id: company.id,
         webhookApiKeyHash: hashedKey
       });
 
+      console.log('Update result:', updatedCompany);
+
       if (updatedCompany.data) {
         setCompany(updatedCompany.data);
         setApiKey(newApiKey); // Show the plain key temporarily
+        console.log('API key set successfully');
         
         // Clear the plain key after 30 seconds for security
         setTimeout(() => {
           setApiKey(null);
         }, 30000);
+      } else {
+        setError('Update succeeded but no data returned');
+        console.error('No data in update response:', updatedCompany);
       }
     } catch (err) {
-      setError('Failed to regenerate API key');
+      setError(`Failed to regenerate API key: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error updating API key:', err);
     } finally {
       setLoading(false);
