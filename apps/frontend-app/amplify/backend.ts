@@ -7,9 +7,11 @@ import {
   RestApi,
   DomainName,
   BasePathMapping,
+  EndpointType,
 } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { HostedZone } from 'aws-cdk-lib/aws-route53';
+import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -65,26 +67,41 @@ const createWebhookApi = () => {
     defaultCorsPreflightOptions: CORS_CONFIG,
   });
 
-  // Always create custom domain
+  // Get hosted zone
   const hostedZone = HostedZone.fromHostedZoneAttributes(apiStack, 'HostedZone', {
     hostedZoneId: DOMAIN_CONFIG.hostedZoneId,
     zoneName: DOMAIN_CONFIG.baseDomain,
   });
 
+  // Create certificate with explicit region and validation
   const certificate = new Certificate(apiStack, 'ApiCertificate', {
     domainName: customDomain,
     validation: CertificateValidation.fromDns(hostedZone),
+    // Ensure certificate is created in the same region as API Gateway
+    certificateName: `${branch}-api-certificate`,
   });
 
+  // Create custom domain name with explicit configuration
   const customDomainResource = new DomainName(apiStack, 'ApiDomainName', {
     domainName: customDomain,
     certificate,
+    // Use EDGE for API Gateway REST APIs
+    endpointType: EndpointType.EDGE,
   });
 
+  // Create base path mapping
   new BasePathMapping(apiStack, 'ApiBasePathMapping', {
     domainName: customDomainResource,
     restApi: api,
     stage: api.deploymentStage,
+  });
+
+  // Create Route53 A record to point custom domain to API Gateway
+  new ARecord(apiStack, 'ApiAliasRecord', {
+    zone: hostedZone,
+    recordName: customDomain.replace(`.${DOMAIN_CONFIG.baseDomain}`, ''), // Extract subdomain
+    target: RecordTarget.fromAlias(new ApiGatewayDomain(customDomainResource)),
+    comment: `API Gateway custom domain for ${branch} branch`,
   });
 
   return { 
