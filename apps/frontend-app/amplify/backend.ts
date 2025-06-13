@@ -85,8 +85,8 @@ const createWebhookApi = () => {
   const customDomainResource = new DomainName(apiStack, 'ApiDomainName', {
     domainName: customDomain,
     certificate,
-    // Use EDGE for API Gateway REST APIs
-    endpointType: EndpointType.EDGE,
+    // Use REGIONAL endpoint type (matches existing configuration)
+    endpointType: EndpointType.REGIONAL,
   });
 
   // Create base path mapping
