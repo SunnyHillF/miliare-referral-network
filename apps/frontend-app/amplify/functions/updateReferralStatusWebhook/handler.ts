@@ -141,7 +141,16 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
       };
     }
 
-    await client.models.Referral.update({ id: referralId, status });
+    const updateInput: Partial<Schema['Referral']['type']> & { id: string } = {
+      id: referralId,
+      status,
+    };
+
+    if (status === 'PAID') {
+      updateInput.paymentStatus = 'PENDING';
+    }
+
+    await client.models.Referral.update(updateInput);
 
     return { 
       statusCode: 200,
