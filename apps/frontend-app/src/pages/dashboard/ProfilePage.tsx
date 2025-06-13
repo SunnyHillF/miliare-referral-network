@@ -3,30 +3,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '../../components/ui/Input';
-import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from '../../components/ui/Toaster';
-
-const companies = [
-  { value: 'WFG', label: 'WFG' },
-  { value: 'Sunny Hill Financial', label: 'Sunny Hill Financial' },
-  { value: 'Prime Corporate Services', label: 'Prime Corporate Services' },
-  { value: 'ANCO', label: 'ANCO' },
-  { value: 'Weightless Financial', label: 'Weightless Financial' },
-  { value: 'Summit Business Syndicate', label: 'Summit Business Syndicate' },
-  { value: 'Wellness for the Workforce', label: 'Wellness for the Workforce' },
-  { value: 'Impact Health Sharing', label: 'Impact Health Sharing' },
-  { value: 'Other', label: 'Other' },
-];
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Please enter a valid email address'),
-  company: z.string().min(1, 'Please select your company'),
-  uplineEVC: z.string().optional(),
-  uplineSMD: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  address: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -40,17 +26,14 @@ const ProfilePage: React.FC = () => {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
-      company: user?.company || '',
-      uplineEVC: user?.uplineEVC || '',
-      uplineSMD: user?.uplineSMD || '',
+      phoneNumber: user?.phoneNumber || '',
+      address: user?.address || '',
     },
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
-    const { company: _company, ...updates } = data;
-    void _company;
     try {
-      await updateProfile(updates);
+      await updateProfile(data);
       toast.success('Profile updated', 'Your changes have been saved.');
     } catch (error) {
       console.error('Profile update error:', error);
@@ -66,10 +49,9 @@ const ProfilePage: React.FC = () => {
           <Input label="First Name" {...register('firstName')} error={errors.firstName?.message} />
           <Input label="Last Name" {...register('lastName')} error={errors.lastName?.message} />
         </div>
-        <Input label="Email" type="email" {...register('email')} error={errors.email?.message} />
-        <Select label="Company" options={companies} disabled {...register('company')} error={errors.company?.message} />
-        <Input label="Upline EVC" {...register('uplineEVC')} error={errors.uplineEVC?.message} />
-        <Input label="Upline SMD" {...register('uplineSMD')} error={errors.uplineSMD?.message} />
+        <Input label="Email" disabled type="email" {...register('email')} error={errors.email?.message} />
+        <Input label="Phone Number" {...register('phoneNumber')} error={errors.phoneNumber?.message} />
+        <Input label="Address" {...register('address')} error={errors.address?.message} />
         <div className="pt-4">
           <Button type="submit">Update Profile</Button>
         </div>

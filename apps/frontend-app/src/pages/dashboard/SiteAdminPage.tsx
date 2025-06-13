@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';

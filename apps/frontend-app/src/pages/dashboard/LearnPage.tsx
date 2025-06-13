@@ -9,7 +9,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../../amplify/data/resource';
+import type { Schema } from '../../../amplify/data/resource';
 import { Button } from '../../components/ui/Button';
 import {
   companyMeta,
@@ -76,7 +76,7 @@ const LearnPage = () => {
         {companies.map((company) => {
           const meta =
             companyMeta[
-              getCompanyMetaKey(company.companyName || company.name || '')
+              getCompanyMetaKey(company.companyName || '')
             ] ||
             defaultMeta;
           return (
@@ -96,7 +96,7 @@ const LearnPage = () => {
                 </Button>
               </div>
 
-              <h3 className="mt-4 text-lg font-medium text-gray-900">{company.name}</h3>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">{company.companyName}</h3>
               <p className="mt-2 text-sm text-gray-500 line-clamp-3">
                 {company.description}
               </p>
@@ -125,11 +125,13 @@ const LearnPage = () => {
                     </span>
                   )}
                   {meta.referralUrl && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={meta.referralUrl} target="_blank" rel="noopener noreferrer">
-                        Refer
-                        <ExternalLink className="ml-1 h-4 w-4" />
-                      </a>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => window.open(meta.referralUrl, '_blank', 'noopener,noreferrer')}
+                    >
+                      Refer
+                      <ExternalLink className="ml-1 h-4 w-4" />
                     </Button>
                   )}
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
@@ -61,14 +61,14 @@ const TeamPage = () => {
   const stats: StatItem[] = [
     {
       label: 'Total Earnings',
-      value: `$${totalEarnings.toLocaleString()}`,
+      value: `$${(totalEarnings || 0).toLocaleString()}`,
       icon: 'DollarSign',
       bgColor: 'bg-blue-100',
       iconColor: 'text-primary',
     },
     {
       label: 'Pending Commissions',
-      value: `$${pendingCommissions.toLocaleString()}`,
+      value: `$${(pendingCommissions || 0).toLocaleString()}`,
       icon: 'Clock',
       bgColor: 'bg-green-100',
       iconColor: 'text-success',

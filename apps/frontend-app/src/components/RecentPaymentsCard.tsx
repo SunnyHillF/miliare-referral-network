@@ -47,7 +47,7 @@ const RecentPaymentsCard: React.FC<RecentPaymentsCardProps> = ({
               <p className="text-xs text-gray-500">{new Date(payment.date).toLocaleDateString()}</p>
             </div>
             <div className="ml-4 text-right">
-              <p className="text-sm font-semibold text-gray-900">${payment.amount.toLocaleString()}</p>
+              <p className="text-sm font-semibold text-gray-900">${(payment.amount || 0).toLocaleString()}</p>
               <p className="text-xs font-medium text-green-600">{payment.status}</p>
             </div>
             {showStatusToggle && (

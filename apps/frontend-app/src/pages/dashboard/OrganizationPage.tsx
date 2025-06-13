@@ -79,7 +79,7 @@ const OrganizationPage = () => {
     );
   };
 
-  const togglePaymentStatus = (id: number) => {
+  const togglePaymentStatus = (id: string | number) => {
     setPayments((prev) =>
       prev.map((p) =>
         p.id === id ? { ...p, paid: !p.paid, status: p.paid ? 'Unpaid' : 'Paid' } : p

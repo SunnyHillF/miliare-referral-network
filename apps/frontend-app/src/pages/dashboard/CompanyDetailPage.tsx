@@ -15,7 +15,7 @@ import { Button } from "../../components/ui/Button";
 import { toast } from "../../components/ui/Toaster";
 import StatsOverview, { StatItem } from "../../components/StatsOverview";
 import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../../amplify/data/resource";
+import type { Schema } from "../../../amplify/data/resource";
 import { companyMeta, getCompanyMetaKey } from "../../data/companyMeta";
 
 const client = generateClient<Schema>();
@@ -34,7 +34,7 @@ const CompanyDetailPage = () => {
   const [faqItems, setFaqItems] = useState<Schema["FaqItem"]["type"][]>([]);
 
   const metaKey = getCompanyMetaKey(
-    company?.companyName || company?.name || "",
+    company?.companyName || "",
   );
 
   useEffect(() => {
@@ -71,14 +71,14 @@ const CompanyDetailPage = () => {
         const computed: StatItem[] = [
           {
             label: "Total Earnings",
-            value: `$${totalEarnings.toLocaleString()}`,
+            value: `$${(totalEarnings || 0).toLocaleString()}`,
             icon: "DollarSign",
             bgColor: "bg-blue-100",
             iconColor: "text-primary",
           },
           {
             label: "Pending Commissions",
-            value: `$${pendingCommissions.toLocaleString()}`,
+            value: `$${(pendingCommissions || 0).toLocaleString()}`,
             icon: "Clock",
             bgColor: "bg-green-100",
             iconColor: "text-success",
@@ -158,7 +158,7 @@ const CompanyDetailPage = () => {
         </Button>
 
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{company?.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{company?.companyName}</h1>
           <p className="text-sm text-gray-500">
             {(companyMeta[metaKey]?.tags || []).join(" • ")}
           </p>
@@ -187,7 +187,7 @@ const CompanyDetailPage = () => {
 
           <div className="p-8 flex-1">
             <h2 className="text-xl font-semibold text-gray-900">
-              About {company?.name}
+              About {company?.companyName}
             </h2>
             <p className="mt-4 text-gray-600">{company?.description}</p>
 
@@ -337,14 +337,12 @@ const CompanyDetailPage = () => {
                 </div>
 
                 <div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => window.open(resource.url, '_blank', 'noopener,noreferrer')}
+                  >
+                    <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -384,7 +382,7 @@ const CompanyDetailPage = () => {
               Ready to start referring?
             </h2>
             <p className="mt-1 text-primary-foreground text-opacity-90">
-              Start earning commissions by referring clients to {company?.name}.
+              Start earning commissions by referring clients to {company?.companyName}.
             </p>
           </div>
           <div className="mt-6 md:mt-0">

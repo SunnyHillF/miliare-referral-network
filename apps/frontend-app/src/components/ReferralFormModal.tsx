@@ -11,11 +11,21 @@ import { Button } from './ui/Button';
 import { toast } from './ui/Toaster';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Valid email required'),
-  phone: z.string().min(1, 'Phone number is required'),
-  referralType: z.string().min(1, 'Type of referral is required'),
-  value: z.string().min(1, 'Approximate value is required'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
+  email: z.string().trim().email('Please enter a valid email address').toLowerCase(),
+  phone: z.string().trim().min(10, 'Phone number must be at least 10 digits').regex(/^[\d\s\-\(\)\+\.]+$/, 'Please enter a valid phone number'),
+  referralType: z.string().trim().min(3, 'Please describe the type of referral (minimum 3 characters)').max(200, 'Description too long'),
+  value: z.string().trim().min(1, 'Approximate value is required')
+    .refine((val: string) => {
+      const num = parseFloat(val.replace(/[,$]/g, ''));
+      return !isNaN(num) && num > 0;
+    }, 'Please enter a valid dollar amount greater than 0')
+    .transform((val: string) => {
+      // Clean the value and ensure it's a valid number
+      const cleaned = val.replace(/[,$]/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? '0' : num.toString();
+    }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,12 +74,17 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ company, isOpen, 
         }
       }
 
+      // Clean and validate the value one more time before saving
+      const cleanedValue = data.value.replace(/[,$]/g, '');
+      const approximateValue = parseFloat(cleanedValue);
+      const finalValue = isNaN(approximateValue) || approximateValue <= 0 ? null : approximateValue;
+
       await client.models.Referral.create({
-        name: data.name,
-        email: data.email,
-        phoneNumber: data.phone,
-        approximateValue: parseFloat(data.value),
-        notes: data.referralType,
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phoneNumber: data.phone.trim(),
+        approximateValue: finalValue,
+        notes: data.referralType.trim(),
         status: 'IN_PROGRESS',
         userId: user.id,
         companyId: company.id,
@@ -91,7 +106,12 @@ const ReferralFormModal: React.FC<ReferralFormModalProps> = ({ company, isOpen, 
         <Input label="Email" type="email" {...register('email')} error={errors.email?.message} />
         <Input label="Phone Number" type="tel" {...register('phone')} error={errors.phone?.message} />
         <Input label="Type of Referral" {...register('referralType')} error={errors.referralType?.message} />
-        <Input label="Approximate Value" {...register('value')} error={errors.value?.message} />
+        <Input 
+          label="Approximate Value" 
+          placeholder="e.g., $5,000 or 5000"
+          {...register('value')} 
+          error={errors.value?.message} 
+        />
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={close}>Cancel</Button>
           <Button type="submit">Submit</Button>

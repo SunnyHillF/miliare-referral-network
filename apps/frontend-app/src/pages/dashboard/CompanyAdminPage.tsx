@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CompanyMembersCard, { CompanyMember } from '../../components/CompanyMembersCard';
 import PendingPaymentsCard, { PendingPayment } from '../../components/PendingPaymentsCard';
 import { generateClient } from 'aws-amplify/data';
@@ -52,12 +52,11 @@ const CompanyAdminPage = () => {
             // ignore
           }
           results.push({
-            id: r.id,
+            id: r.id || '',
             date: r.createdAt || '',
             amount: r.amount || 0,
             status: 'Pending',
             company: name,
-            paid: false,
           });
         }
         setPayments(results);
@@ -126,13 +125,11 @@ const CompanyAdminPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CompanyMembersCard
           members={members}
-          showStatusToggle
           onToggleStatus={toggleMemberStatus}
         />
         <PendingPaymentsCard
           payments={payments}
           onViewHistory={handleViewHistory}
-          showStatusToggle
           onStatusChange={changePaymentStatus}
         />
       </div>

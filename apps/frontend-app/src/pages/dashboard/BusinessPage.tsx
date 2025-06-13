@@ -60,7 +60,7 @@ const BusinessPage = () => {
             successCount += 1;
             totalEarn += r.amount ?? 0;
             payments.push({
-              id: r.id,
+              id: r.id || '',
               date: r.processedAt || r.createdAt || '',
               amount: r.amount || 0,
               status: 'Paid',
@@ -75,14 +75,11 @@ const BusinessPage = () => {
           ) {
             pendingComm += r.amount ?? 0;
             pending.push({
-              id: r.id,
+              id: r.id || '',
               date: r.createdAt || '',
               client: r.name,
               company: companyName,
-              status:
-                r.status === 'IN_PROGRESS'
-                  ? 'In Progress'
-                  : r.status?.replace('_', ' ') || 'In Progress',
+              status: r.status?.replace('_', ' ') || 'In Progress',
               estimatedCommission: r.amount ?? null,
             });
           }
@@ -138,14 +135,14 @@ const BusinessPage = () => {
   const stats: StatItem[] = [
     {
       label: 'Total Earnings',
-      value: `$${totalEarnings.toLocaleString()}`,
+      value: `$${(totalEarnings || 0).toLocaleString()}`,
       icon: 'DollarSign',
       bgColor: 'bg-blue-100',
       iconColor: 'text-primary',
     },
     {
       label: 'Pending Commissions',
-      value: `$${pendingCommissions.toLocaleString()}`,
+      value: `$${(pendingCommissions || 0).toLocaleString()}`,
       icon: 'Clock',
       bgColor: 'bg-green-100',
       iconColor: 'text-success',

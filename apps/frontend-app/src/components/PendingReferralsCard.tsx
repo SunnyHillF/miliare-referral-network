@@ -53,7 +53,9 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-500">{new Date(referral.date).toLocaleDateString()}</span>
-              <span className="font-medium text-gray-900">${referral.estimatedCommission.toLocaleString()}</span>
+              <span className="font-medium text-gray-900">
+                {referral.estimatedCommission ? `$${referral.estimatedCommission.toLocaleString()}` : 'TBD'}
+              </span>
             </div>
           </div>
         ))}
@@ -104,7 +106,7 @@ const PendingReferralsCard: React.FC<PendingReferralsCardProps> = ({
                   </span>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  ${referral.estimatedCommission.toLocaleString()}
+                  {referral.estimatedCommission ? `$${referral.estimatedCommission.toLocaleString()}` : 'TBD'}
                 </td>
               </tr>
             ))}
