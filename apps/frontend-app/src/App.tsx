@@ -41,6 +41,7 @@ const ProtectedRoute = ({
 
   // Check if user has any of the required groups access
   if (requiredGroups && !requiredGroups.some(group => user?.groups?.includes(group)) && !user?.groups?.includes('admin')) {
+
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -73,12 +74,12 @@ function App() {
               <TeamPage />
             </ProtectedRoute>
           } />
-          <Route path="company-admin" element={
-            <ProtectedRoute requiredGroups={["companyAdmin"]}>
+          <Route path="organization" element={
+            <ProtectedRoute requiredGroups={["orgLead"]}>
               <OrganizationPage />
             </ProtectedRoute>
           } />
-          <Route path="company-admin-tools" element={
+          <Route path="company-admin" element={
             <ProtectedRoute requiredGroups={["companyAdmin"]}>
               <CompanyAdminPage />
             </ProtectedRoute>

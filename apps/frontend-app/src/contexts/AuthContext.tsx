@@ -62,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           orgLeadId: attributes['custom:orgLeadId'] ?? undefined,
           activated: attributes['custom:activated'] === 'true',
         };
+        
         setUser(userData);
       }
     } catch (error) {
