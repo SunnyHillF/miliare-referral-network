@@ -206,9 +206,19 @@ const SiteAdminPage = () => {
           </div>
 
           <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Company ID:</p>
+            <div className="p-2 bg-gray-50 rounded border font-mono text-sm">
+              {company?.id || 'Loading...'}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Use this company ID in your webhook requests
+            </p>
+          </div>
+
+          <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Request Body Example:</p>
             <div className="p-3 bg-gray-50 rounded border font-mono text-sm">
-              <pre>{JSON.stringify({ status: "PAID" }, null, 2)}</pre>
+              <pre>{JSON.stringify({ companyId: company?.id || "<companyId>", status: "PAID" }, null, 2)}</pre>
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Valid status values: IN_PROGRESS, IN_REVIEW, PAID, REJECTED

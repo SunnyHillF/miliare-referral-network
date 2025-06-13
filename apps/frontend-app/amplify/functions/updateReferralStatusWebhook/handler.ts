@@ -82,17 +82,44 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
   });
 
   try {
-    // Find company by apiKey hash
-    const companies = await client.models.Company.list({
-      filter: { webhookApiKeyHash: { eq: hash } },
-    });
+    // Parse request body first to get companyId
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch {
+      return { 
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Invalid JSON body' })
+      };
+    }
 
-    const company = companies.data[0];
-    if (!company) {
+    // Validate companyId is provided
+    const companyId = body.companyId;
+    if (!companyId || typeof companyId !== 'string') {
+      return { 
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing or invalid companyId in request body' })
+      };
+    }
+
+    // Get the specific company by ID and validate API key
+    const company = await client.models.Company.get({ id: companyId });
+    if (!company.data) {
+      return { 
+        statusCode: 404,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Company not found' })
+      };
+    }
+
+    // Validate API key hash matches this specific company
+    if (company.data.webhookApiKeyHash !== hash) {
       return { 
         statusCode: 403,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'Invalid API key' })
+        body: JSON.stringify({ error: 'Invalid API key for this company' })
       };
     }
 
@@ -106,22 +133,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
     }
 
     const referral = await client.models.Referral.get({ id: referralId });
-    if (!referral.data || referral.data.companyId !== company.id) {
+    if (!referral.data || referral.data.companyId !== company.data.id) {
       return { 
         statusCode: 404,
         headers: corsHeaders,
         body: JSON.stringify({ error: 'Referral not found' })
-      };
-    }
-
-    let body;
-    try {
-      body = JSON.parse(event.body || '{}');
-    } catch {
-      return { 
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Invalid JSON body' })
       };
     }
 
@@ -158,7 +174,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
       body: JSON.stringify({ 
         message: 'Referral status updated successfully',
         referralId,
-        newStatus: status
+        newStatus: status,
+        companyId: company.data.id
       })
     };
   } catch (error) {
