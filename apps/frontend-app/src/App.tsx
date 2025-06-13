@@ -106,7 +106,7 @@ function App() {
           <Route
             path="site-admin"
             element={
-              <ProtectedRoute requiredGroup="admin">
+              <ProtectedRoute requiredGroup="siteAdmin">
                 <SiteAdminPage />
               </ProtectedRoute>
             }
