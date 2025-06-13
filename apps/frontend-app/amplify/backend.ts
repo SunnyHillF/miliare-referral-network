@@ -13,7 +13,7 @@ import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatem
 import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
-// import { auth } from './auth/resource'; // COMMENTED OUT - Will recreate with updated attributes
+import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { updateReferralStatusWebhook } from './functions/updateReferralStatusWebhook/resource';
 
@@ -46,7 +46,7 @@ const CORS_CONFIG = {
 };
 
 export const backend = defineBackend({
-  // auth, // COMMENTED OUT - Will recreate with updated attributes
+  auth,
   data,
   updateReferralStatusWebhook,
 });

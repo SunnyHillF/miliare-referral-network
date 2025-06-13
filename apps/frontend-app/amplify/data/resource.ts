@@ -32,13 +32,12 @@ export const schema = a.schema({
       faqItems: a.hasMany("FaqItem", "companyId"),
     })
     .authorization((allow) => [
-      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.guest().to(["read"]),
+      allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("companyAdmin").to(["read", "update"]),
+      allow.authenticated("identityPool").to(["read"]),
+      // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
-      // COMMENTED OUT - Will restore when Cognito is recreated:
-      // allow.guest().to(["read"]),
-      // allow.group("admin").to(["create", "read", "update", "delete"]),
-      // allow.group("companyAdmin").to(["read", "update"]),
-      // allow.authenticated("identityPool").to(["read"]),
     ]),
 
   // User model (extends Cognito user)
@@ -64,14 +63,13 @@ export const schema = a.schema({
       updatedAt: a.string(),
     })
     .authorization((allow) => [
-      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.owner().to(["create", "read", "update"]),
+      allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("teamLead").to(["read"]),
+      allow.group("divisionLead").to(["update", "read"]),
+      allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
+      // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
-      // COMMENTED OUT - Will restore when Cognito is recreated:
-      // allow.owner().to(["create", "read", "update"]),
-      // allow.group("admin").to(["create", "read", "update", "delete"]),
-      // allow.group("teamLead").to(["read"]),
-      // allow.group("divisionLead").to(["update", "read"]),
-      // allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
     ]),
 
   // Referral model
@@ -110,14 +108,13 @@ export const schema = a.schema({
       updatedAt: a.string(),
     })
     .authorization((allow) => [
-      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.owner().to(["create", "read", "update"]),
+      allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("teamLead").to(["update", "read"]),
+      allow.group("divisionLead").to(["update", "read"]),
+      allow.authenticated("identityPool").to(["read", "update"]),
+      // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
-      // COMMENTED OUT - Will restore when Cognito is recreated:
-      // allow.owner().to(["create", "read", "update"]),
-      // allow.group("admin").to(["create", "read", "update", "delete"]),
-      // allow.group("teamLead").to(["update", "read"]),
-      // allow.group("divisionLead").to(["update", "read"]),
-      // allow.authenticated("identityPool").to(["read", "update"]),
     ]),
 
   // Training resource model
@@ -134,10 +131,8 @@ export const schema = a.schema({
       updatedAt: a.string(),
     })
     .authorization((allow) => [
-      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
-      // COMMENTED OUT - Will restore when Cognito is recreated:
-      // allow.group("admin").to(["create", "read", "update", "delete"]),
     ]),
 
   // FAQ model
@@ -152,10 +147,8 @@ export const schema = a.schema({
       updatedAt: a.string(),
     })
     .authorization((allow) => [
-      // TEMPORARY: Use API key for all operations while Cognito is being recreated
+      allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
-      // COMMENTED OUT - Will restore when Cognito is recreated:
-      // allow.group("admin").to(["create", "read", "update", "delete"]),
     ]),
 });
 
@@ -164,10 +157,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    // TEMPORARY: Using API key as default while Cognito user pool is being recreated
-    defaultAuthorizationMode: "apiKey",
-    // COMMENTED OUT - Will restore when Cognito is recreated:
-    // defaultAuthorizationMode: "userPool",
+    defaultAuthorizationMode: "userPool",
     // API Key is used by the webhook to update referral status
     apiKeyAuthorizationMode: {
       expiresInDays: 30,
