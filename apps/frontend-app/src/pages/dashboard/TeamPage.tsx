@@ -1,30 +1,133 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import EarningsChart, { EarningsPoint } from '../../components/EarningsChart';
 import StatsOverview, { StatItem } from '../../components/StatsOverview';
 import TeamMembersCard, { TeamMember } from '../../components/TeamMembersCard';
 import RecentPaymentsCard, { RecentPayment } from '../../components/RecentPaymentsCard';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../../amplify/data/resource';
+import { useAuth } from '../../contexts/AuthContext';
 
 const TeamPage = () => {
-  // Mock aggregated team data for demonstration
-  const totalEarnings = 48250.75;
-  const pendingCommissions = 5430.5;
-  const referralsCount = 135;
-  const successfulReferrals = 98;
-  
-  const recentPayments: RecentPayment[] = [
-    { id: 1, date: '2023-06-15', amount: 1250.50, status: 'Paid', company: 'Sunny Hill Financial' },
-    { id: 2, date: '2023-05-20', amount: 945.25, status: 'Paid', company: 'Prime Corporate Services' },
-    { id: 3, date: '2023-04-10', amount: 1750.00, status: 'Paid', company: 'ANCO Insurance' },
-    { id: 4, date: '2023-03-05', amount: 830.00, status: 'Paid', company: 'Summit Business Syndicate' },
-  ];
-  
-  const teamMembers: TeamMember[] = [
-    { id: 1, name: 'Alice Thompson', totalReferrals: 42, pendingCommissions: 1250.5, successRate: 0.73 },
-    { id: 2, name: 'Brian Davis', totalReferrals: 37, pendingCommissions: 980.0, successRate: 0.68 },
-    { id: 3, name: 'Carla Martinez', totalReferrals: 56, pendingCommissions: 2100.75, successRate: 0.81 },
-  ];
+  const { user } = useAuth();
+  const client = generateClient<Schema>();
+
+  const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [stats, setStats] = useState<StatItem[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data: members } = await client.models.User.list({
+          filter: { teamLeadId: { eq: user.id } },
+        });
+
+        const memberResults: TeamMember[] = [];
+        let totalEarnings = 0;
+        let pendingCommissions = 0;
+        let referralsCount = 0;
+        let successfulReferrals = 0;
+
+        for (const m of members) {
+          const { data: refs } = await client.models.Referral.list({
+            filter: { userId: { eq: m.id } },
+          });
+
+          const processed = refs.filter((r) => r.paymentStatus === 'PROCESSED');
+          const pending = refs.filter((r) => r.paymentStatus === 'PENDING');
+
+          const memberPending = pending.reduce((sum, r) => sum + (r.amount || 0), 0);
+          const memberSuccessRate =
+            refs.length > 0 ? processed.length / refs.length : 0;
+
+          memberResults.push({
+            id: m.id || '',
+            name: m.name || '',
+            totalReferrals: refs.length,
+            pendingCommissions: memberPending,
+            successRate: memberSuccessRate,
+          });
+
+          referralsCount += refs.length;
+          successfulReferrals += processed.length;
+          totalEarnings += processed.reduce((sum, r) => sum + (r.amount || 0), 0);
+          pendingCommissions += memberPending;
+        }
+
+        setTeamMembers(memberResults);
+
+        setStats([
+          {
+            label: 'Total Earnings',
+            value: `$${totalEarnings.toLocaleString()}`,
+            icon: 'DollarSign',
+            bgColor: 'bg-blue-100',
+            iconColor: 'text-primary',
+          },
+          {
+            label: 'Pending Commissions',
+            value: `$${pendingCommissions.toLocaleString()}`,
+            icon: 'Clock',
+            bgColor: 'bg-green-100',
+            iconColor: 'text-success',
+          },
+          {
+            label: 'Total Referrals',
+            value: referralsCount.toString(),
+            icon: 'Users',
+            bgColor: 'bg-purple-100',
+            iconColor: 'text-purple-600',
+          },
+          {
+            label: 'Success Rate',
+            value: `${referralsCount ? Math.round((successfulReferrals / referralsCount) * 100) : 0}%`,
+            icon: 'TrendingUp',
+            bgColor: 'bg-orange-100',
+            iconColor: 'text-orange-600',
+          },
+        ]);
+      } catch (err) {
+        console.error('Failed to load team data', err);
+      }
+    };
+
+    const loadPayments = async () => {
+      if (!user?.id) return;
+      try {
+        const { data } = await client.models.Referral.list({
+          filter: { teamLeadId: { eq: user.id } },
+        });
+
+        const payments: RecentPayment[] = [];
+        for (const r of data) {
+          let companyName = r.companyId;
+          try {
+            const { data: c } = await client.models.Company.get({ id: r.companyId });
+            if (c?.companyName) companyName = c.companyName;
+          } catch {
+            // ignore
+          }
+          payments.push({
+            id: r.id || '',
+            date: r.createdAt || '',
+            amount: r.amount || 0,
+            status: r.paymentStatus === 'PROCESSED' ? 'Paid' : r.paymentStatus === 'FAILED' ? 'Failed' : 'Pending',
+            company: companyName,
+          });
+        }
+        setRecentPayments(payments);
+      } catch (err) {
+        console.error('Failed to load payments', err);
+      }
+    };
+
+    loadData();
+    loadPayments();
+  }, [user, client]);
 
   // Team earnings data (higher values than individual business)
   const earningsData6Months: EarningsPoint[] = [
@@ -57,37 +160,6 @@ const TeamPage = () => {
   };
 
   const chartData = earningsMap[period] || earningsData6Months;
-
-  const stats: StatItem[] = [
-    {
-      label: 'Total Earnings',
-      value: `$${(totalEarnings || 0).toLocaleString()}`,
-      icon: 'DollarSign',
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-primary',
-    },
-    {
-      label: 'Pending Commissions',
-      value: `$${(pendingCommissions || 0).toLocaleString()}`,
-      icon: 'Clock',
-      bgColor: 'bg-green-100',
-      iconColor: 'text-success',
-    },
-    {
-      label: 'Total Referrals',
-      value: referralsCount.toString(),
-      icon: 'Users',
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-    },
-    {
-      label: 'Success Rate',
-      value: `${Math.round((successfulReferrals / referralsCount) * 100)}%`,
-      icon: 'TrendingUp',
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-    },
-  ];
 
   const handleViewAllMembers = () => {
     console.log('Navigate to all team members page');
