@@ -68,6 +68,8 @@ export const schema = a.schema({
       allow.group("teamLead").to(["read"]),
       allow.group("divisionLead").to(["update", "read"]),
       allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
+      // Allow authenticated users to read basic user info for team display
+      allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
@@ -112,7 +114,8 @@ export const schema = a.schema({
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("teamLead").to(["update", "read"]),
       allow.group("divisionLead").to(["update", "read"]),
-      allow.authenticated("identityPool").to(["read", "update"]),
+      // Allow authenticated users to create and read referrals, update their own
+      allow.authenticated("identityPool").to(["create", "read", "update"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
@@ -132,6 +135,9 @@ export const schema = a.schema({
     })
     .authorization((allow) => [
       allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
+      // Allow authenticated users to read training resources for learn page
+      allow.authenticated("identityPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
 
@@ -148,6 +154,9 @@ export const schema = a.schema({
     })
     .authorization((allow) => [
       allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
+      // Allow authenticated users to read FAQ items for learn page
+      allow.authenticated("identityPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
 });
