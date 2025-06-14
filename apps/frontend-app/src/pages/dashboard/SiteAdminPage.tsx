@@ -35,38 +35,36 @@ const SiteAdminPage = () => {
   const CopyIcon = copied ? Check : Copy;
   const EndpointCopyIcon = endpointCopied ? Check : Copy;
 
-  const loadCompanyData = useCallback(async () => {
+  // Load company data on component mount
+  useEffect(() => {
     if (!user?.companyId) {
       setError('No company ID found for user');
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get the user's specific company
-      const { data } = await client.models.Company.get({ id: user.companyId });
-      if (data) {
-        setCompany(data);
-        console.log('Loaded company:', data);
-      } else {
-        setError('Company not found');
+    const loadCompanyData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get the user's specific company
+        const { data } = await client.models.Company.get({ id: user.companyId });
+        if (data) {
+          setCompany(data);
+          console.log('Loaded company:', data);
+        } else {
+          setError('Company not found');
+        }
+      } catch (err) {
+        setError(`Failed to load company data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        console.error('Error loading company:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(`Failed to load company data: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error('Error loading company:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [client, user?.companyId]);
+    };
 
-  // Load company data on component mount
-  useEffect(() => {
-    if (user) {
-      loadCompanyData();
-    }
-  }, [loadCompanyData, user]);
+    loadCompanyData();
+  }, [user?.companyId]); // Remove client from dependencies to prevent infinite loop
 
   const handleRegenerate = async () => {
     console.log('handleRegenerate called, company:', company);

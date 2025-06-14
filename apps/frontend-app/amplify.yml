@@ -31,3 +31,28 @@ applications:
         baseDirectory: dist
         files:
           - '**/*'
+      customHeaders:
+        - pattern: '**/*'
+          headers:
+            - key: 'Strict-Transport-Security'
+              value: 'max-age=31536000; includeSubDomains'
+            - key: 'X-Frame-Options'
+              value: 'SAMEORIGIN'
+            - key: 'X-Content-Type-Options'
+              value: 'nosniff'
+        - pattern: '**/*.js'
+          headers:
+            - key: 'Cache-Control'
+              value: 'public, max-age=31536000, immutable'
+        - pattern: '**/*.css'
+          headers:
+            - key: 'Cache-Control'
+              value: 'public, max-age=31536000, immutable'
+        - pattern: '/static/**/*'
+          headers:
+            - key: 'Cache-Control'
+              value: 'public, max-age=31536000, immutable'
+      redirects:
+        - source: '/<*>'
+          target: '/index.html'
+          status: '200'
