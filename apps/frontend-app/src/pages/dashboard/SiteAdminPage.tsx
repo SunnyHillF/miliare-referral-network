@@ -51,7 +51,6 @@ const SiteAdminPage = () => {
         const { data } = await client.models.Company.get({ id: user.companyId });
         if (data) {
           setCompany(data);
-          console.log('Loaded company:', data);
         } else {
           setError('Company not found');
         }
@@ -67,9 +66,6 @@ const SiteAdminPage = () => {
   }, [user?.companyId]); // Remove client from dependencies to prevent infinite loop
 
   const handleRegenerate = async () => {
-    console.log('handleRegenerate called, company:', company);
-    console.log('User groups:', user?.groups);
-    
     if (!company) {
       setError('No company found');
       return;
@@ -88,22 +84,15 @@ const SiteAdminPage = () => {
       
       // Generate new API key
       const newApiKey = generateApiKey();
-      console.log('Generated new API key:', newApiKey);
       
       const hashedKey = await hashApiKey(newApiKey);
-      console.log('Generated hash:', hashedKey);
       
       // Update company with new hashed API key
-      console.log('Updating company with ID:', company.id);
-      console.log('Update payload:', { id: company.id, webhookApiKeyHash: hashedKey });
       
       const updatedCompany = await client.models.Company.update({
         id: company.id,
         webhookApiKeyHash: hashedKey
       });
-
-      console.log('Update result:', updatedCompany);
-      console.log('Update errors:', updatedCompany.errors);
 
       if (updatedCompany.errors && updatedCompany.errors.length > 0) {
         const errorMessage = updatedCompany.errors.map(e => e.message).join(', ');
@@ -115,7 +104,6 @@ const SiteAdminPage = () => {
       if (updatedCompany.data) {
         setCompany(updatedCompany.data);
         setApiKey(newApiKey); // Show the plain key temporarily
-        console.log('API key set successfully');
         
         // Clear the plain key after 30 seconds for security
         setTimeout(() => {
@@ -202,19 +190,6 @@ const SiteAdminPage = () => {
           <p className="text-red-800 text-sm">{error}</p>
         </div>
       )}
-
-      {/* Debug info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h3 className="text-blue-900 font-medium mb-2">Debug Information</h3>
-        <div className="text-sm text-blue-800 space-y-1">
-          <p><strong>User ID:</strong> {user?.id}</p>
-          <p><strong>User Groups:</strong> {user?.groups?.join(', ') || 'None'}</p>
-          <p><strong>User Company ID:</strong> {user?.companyId}</p>
-          <p><strong>Loaded Company ID:</strong> {company?.id}</p>
-          <p><strong>Company Name:</strong> {company?.companyName}</p>
-          <p><strong>Has API Key Hash:</strong> {company?.webhookApiKeyHash ? 'Yes' : 'No'}</p>
-        </div>
-      </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 space-y-6">
         <div>
