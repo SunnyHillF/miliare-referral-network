@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { generateClient } from 'aws-amplify/data';
@@ -63,7 +63,9 @@ const SiteAdminPage = () => {
     };
 
     loadCompanyData();
-  }, [user?.companyId]); // Remove client from dependencies to prevent infinite loop
+  // Remove client from dependencies to prevent infinite loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.companyId]);
 
   const handleRegenerate = async () => {
     if (!company) {

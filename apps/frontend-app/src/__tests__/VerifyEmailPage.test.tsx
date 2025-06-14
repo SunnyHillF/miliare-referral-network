@@ -19,11 +19,13 @@ vi.mock("aws-amplify/data", () => ({
 
 const navigate = vi.fn();
 vi.mock("react-router-dom", async () => {
-  const actual: any = await vi.importActual("react-router-dom");
+  const actual = (await vi.importActual<typeof import("react-router-dom")>(
+    "react-router-dom",
+  )) as typeof import("react-router-dom");
   return { ...actual, useNavigate: () => navigate };
 });
 
-function renderPage(state?: any) {
+function renderPage(state?: { email?: string }) {
   const initialEntries = [{ pathname: "/verify", state }];
   return render(
     <MemoryRouter initialEntries={initialEntries}>

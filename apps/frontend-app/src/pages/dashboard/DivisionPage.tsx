@@ -26,7 +26,10 @@ const DivisionPage = () => {
 
       try {
         const { data: users } = await client.models.User.list({
-          filter: { divisionLeadId: { eq: user.id } },
+          filter: {
+            divisionLeadId: { eq: user.id },
+            teamLead: { eq: true },
+          },
         });
 
         const memberResults: TeamMember[] = [];
