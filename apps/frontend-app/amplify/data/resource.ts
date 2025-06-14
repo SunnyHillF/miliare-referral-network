@@ -35,6 +35,7 @@ export const schema = a.schema({
       allow.guest().to(["read"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["read", "update"]),
+      allow.authenticated("userPool").to(["read"]),
       allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
@@ -132,6 +133,7 @@ export const schema = a.schema({
     })
     .authorization((allow) => [
       allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.authenticated("userPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
 
@@ -148,6 +150,7 @@ export const schema = a.schema({
     })
     .authorization((allow) => [
       allow.group("admin").to(["create", "read", "update", "delete"]),
+      allow.authenticated("userPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
 });
