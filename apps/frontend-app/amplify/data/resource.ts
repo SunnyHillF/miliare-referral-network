@@ -35,6 +35,8 @@ export const schema = a.schema({
       allow.guest().to(["read"]),
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["read", "update"]),
+      // Allow authenticated users via both userPool and identityPool to read companies
+      allow.authenticated().to(["read"]),
       allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
@@ -69,6 +71,7 @@ export const schema = a.schema({
       allow.group("divisionLead").to(["update", "read"]),
       allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
       // Allow authenticated users to read basic user info for team display
+      allow.authenticated().to(["read"]),
       allow.authenticated("identityPool").to(["read"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
@@ -115,6 +118,7 @@ export const schema = a.schema({
       allow.group("teamLead").to(["update", "read"]),
       allow.group("divisionLead").to(["update", "read"]),
       // Allow authenticated users to create and read referrals, update their own
+      allow.authenticated().to(["create", "read", "update"]),
       allow.authenticated("identityPool").to(["create", "read", "update"]),
       // Allow API key for seed scripts
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
@@ -137,6 +141,7 @@ export const schema = a.schema({
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
       // Allow authenticated users to read training resources for learn page
+      allow.authenticated().to(["read"]),
       allow.authenticated("identityPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
@@ -156,6 +161,7 @@ export const schema = a.schema({
       allow.group("admin").to(["create", "read", "update", "delete"]),
       allow.group("companyAdmin").to(["create", "read", "update", "delete"]),
       // Allow authenticated users to read FAQ items for learn page
+      allow.authenticated().to(["read"]),
       allow.authenticated("identityPool").to(["read"]),
       allow.publicApiKey().to(["create", "read", "update", "delete"]),
     ]),
